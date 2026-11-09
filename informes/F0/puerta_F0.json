@@ -1,0 +1,212 @@
+{
+  "fase": "F0",
+  "prerregistro_sha256": "3743341b7e43585b1645294483ccef7af98e10cc95cf49997c90120abaa30bf3",
+  "version": "0.1.0",
+  "commit": "a9d598dcd0269567415f6ea1722df228007dbfe9",
+  "entorno": {
+    "python": "3.13.18",
+    "numpy": "2.5.3",
+    "maquina": "x86_64",
+    "procesador": "x86_64"
+  },
+  "ontologia": "6357d1099bb939578dda95da5400536435162aa0258334279b9c1789377f1a27",
+  "criterios": {
+    "determinismo": {
+      "repeticion_identica": true,
+      "invariancia_tamano_bloque": true,
+      "invariancia_procesos": true,
+      "reanudacion_identica": true,
+      "brazo_base_igual_ensemble": true,
+      "supera": true,
+      "detalle": {
+        "20261109": {
+          "repeticion_identica": true,
+          "invariancia_tamano_bloque": true,
+          "invariancia_procesos": true,
+          "reanudacion_identica": true,
+          "brazo_base_igual_ensemble": true
+        },
+        "7": {
+          "repeticion_identica": true,
+          "invariancia_tamano_bloque": true,
+          "invariancia_procesos": true,
+          "reanudacion_identica": true,
+          "brazo_base_igual_ensemble": true
+        }
+      }
+    },
+    "pod_nulo": {
+      "max_abs_diferencia": 0.0,
+      "umbral": 0.0,
+      "supera": true,
+      "control_positivo_max_abs_diferencia": 3383230.2304480392,
+      "detalle": [
+        {
+          "semilla": 20261109,
+          "variante": "nulo",
+          "acoplamiento": "fisico",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 20261109,
+          "variante": "nulo",
+          "acoplamiento": "maximo",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 20261109,
+          "variante": "nulo",
+          "acoplamiento": "independiente",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 20261109,
+          "variante": "inclinacion_cero",
+          "acoplamiento": "fisico",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 20261109,
+          "variante": "inclinacion_cero",
+          "acoplamiento": "maximo",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 20261109,
+          "variante": "inclinacion_cero",
+          "acoplamiento": "independiente",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 20261109,
+          "variante": "suceso_intervalo_total",
+          "acoplamiento": "fisico",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 20261109,
+          "variante": "suceso_intervalo_total",
+          "acoplamiento": "maximo",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 20261109,
+          "variante": "suceso_intervalo_total",
+          "acoplamiento": "independiente",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 7,
+          "variante": "nulo",
+          "acoplamiento": "fisico",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 7,
+          "variante": "nulo",
+          "acoplamiento": "maximo",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 7,
+          "variante": "nulo",
+          "acoplamiento": "independiente",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 7,
+          "variante": "inclinacion_cero",
+          "acoplamiento": "fisico",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 7,
+          "variante": "inclinacion_cero",
+          "acoplamiento": "maximo",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 7,
+          "variante": "inclinacion_cero",
+          "acoplamiento": "independiente",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 7,
+          "variante": "suceso_intervalo_total",
+          "acoplamiento": "fisico",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 7,
+          "variante": "suceso_intervalo_total",
+          "acoplamiento": "maximo",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        },
+        {
+          "semilla": 7,
+          "variante": "suceso_intervalo_total",
+          "acoplamiento": "independiente",
+          "max_abs_diferencia": 0.0,
+          "coste_max": 0.0,
+          "particulas_divergidas": 0
+        }
+      ]
+    },
+    "identidades": {
+      "pasos_verificados": 960,
+      "fraccion_pasos_superados": 1.0,
+      "rangos_fraccion_superada": 1.0,
+      "identidades_con_fallo": [],
+      "n_identidades": 14,
+      "tolerancia_relativa": 1e-10,
+      "supera": true
+    },
+    "rendimiento": {
+      "us_por_trayectoria_anio": 27.67215097656539,
+      "us_por_trayectoria_anio_numpy_puro": 45.5996950927684,
+      "umbral": 200,
+      "entidades": 30,
+      "variables_por_entidad": 53,
+      "mecanismos": 15,
+      "supera": true,
+      "configuracion_cumplida": true
+    }
+  },
+  "supera_puerta": true,
+  "segundos": 43.03493294400005
+}
