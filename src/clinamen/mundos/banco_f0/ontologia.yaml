@@ -1,0 +1,622 @@
+# Ontología del mundo de banco F0 (M1).
+#
+# Mundo de PRUEBA DE INGENIERÍA para la fase F0. No describe ninguna sociedad real.
+# Todos los parámetros tienen procedencia «supuesto» y no deben usarse para inferir nada.
+# Su tamaño reproduce la configuración del objetivo de rendimiento (§14.3):
+# 30 entidades, 53 variables por entidad, 15 mecanismos.
+
+nombre: banco_f0
+descripcion: >
+  Mundo sintético de 30 entidades en rejilla 5x6 con demografía malthusiana, agricultura con clima,
+  comercio y migración por aristas, fiscalidad y deuda, ejército y guerra con bajas de cola pesada,
+  élites y crisis interna, epidemias de cola pesada, gobernantes con tabla de vida de Gompertz,
+  difusión técnica y forzamiento volcánico compartido entre mundos.
+advertencia: "Mundo de prueba F0: sin evidencia histórica; parámetros supuestos; no usar para inferencia."
+
+topologia: {tipo: rejilla, filas: 5, columnas: 6}
+
+x-supuesto: &sup
+  procedencia: supuesto
+  referencia: "ninguna: supuesto de ingeniería del mundo de banco F0"
+  invariante: true
+
+# --------------------------------------------------------------------------------- variables
+variables:
+  # Demografía (M)
+  poblacion:            {bloque: M, tipo: stock,    unidad: personas,      rango: [0, 1.0e9],  descripcion: Población total de la entidad}
+  nacimientos:          {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e9],  descripcion: Nacimientos del año}
+  muertes_ordinarias:   {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e9],  descripcion: Muertes por causas ordinarias}
+  muertes_hambre:       {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e9],  descripcion: Muertes por insuficiencia alimentaria}
+  muertes_epidemia:     {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e9],  descripcion: Muertes por epidemia}
+  muertes_guerra:       {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e9],  descripcion: Muertes por guerra (militares y civiles)}
+  inmigrantes:          {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e9],  descripcion: Llegadas desde entidades vecinas}
+  emigrantes:           {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e9],  descripcion: Salidas hacia entidades vecinas}
+  urbanizacion:         {bloque: M, tipo: estado,   unidad: fracción,      rango: [0, 1],      descripcion: Fracción urbana de la población}
+  # Agricultura y grano (M)
+  tierra_cultivada:     {bloque: M, tipo: estado,   unidad: ha,            rango: [0, 1.0e9],  descripcion: Superficie cultivada}
+  rendimiento:          {bloque: M, tipo: derivada, unidad: t/ha,          rango: [0, 10],     descripcion: Rendimiento agrícola del año}
+  produccion:           {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e10], descripcion: Cosecha del año}
+  reservas:             {bloque: M, tipo: stock,    unidad: t,             rango: [0, 1.0e11], descripcion: Reservas privadas de grano}
+  consumo:              {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e11], descripcion: Grano consumido}
+  mermas:               {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e11], descripcion: Grano perdido en almacenamiento}
+  exportaciones:        {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e11], descripcion: Grano enviado a vecinos}
+  importaciones:        {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e11], descripcion: Grano recibido de vecinos}
+  suficiencia_alimentaria: {bloque: M, tipo: derivada, unidad: fracción,   rango: [0, 1],      descripcion: Consumo sobre necesidad}
+  salario_real:         {bloque: M, tipo: derivada, unidad: t/persona/año, rango: [0, 1],      descripcion: Consumo per cápita}
+  # Clima y forzamientos (E)
+  anomalia_clima:       {bloque: E, tipo: estado,   unidad: desviaciones típicas, rango: [-60, 60], descripcion: Anomalía climática regional}
+  forzamiento_volcanico: {bloque: E, ambito: global, tipo: estado, unidad: unidades de forzamiento, rango: [0, 100], descripcion: Forzamiento volcánico acumulado}
+  erupcion:             {bloque: E, ambito: global, tipo: flujo,  unidad: unidades de forzamiento, rango: [0, 50],  descripcion: Magnitud de la erupción del año}
+  # Técnica (M)
+  tecnologia:           {bloque: M, tipo: estado,   unidad: índice,        rango: [0.1, 20],   descripcion: Nivel técnico agregado}
+  # Fiscalidad (M)
+  tasa_fiscal:          {bloque: M, tipo: estado,   unidad: fracción,      rango: [0, 0.5],    descripcion: Tasa nominal sobre la cosecha}
+  capacidad_fiscal:     {bloque: M, tipo: estado,   unidad: fracción,      rango: [0, 1],      descripcion: Fracción efectivamente recaudable}
+  ingresos_fiscales:    {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e10], descripcion: Recaudación en grano}
+  tesoro:               {bloque: M, tipo: stock,    unidad: t,             rango: [0, 1.0e12], descripcion: Caja del Estado}
+  deuda:                {bloque: M, tipo: stock,    unidad: t,             rango: [0, 1.0e12], descripcion: Deuda pública}
+  prestamos:            {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e12], descripcion: Nuevo endeudamiento}
+  amortizacion:         {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e12], descripcion: Devolución de principal}
+  impago:               {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e12], descripcion: Deuda repudiada}
+  intereses:            {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e12], descripcion: Intereses pagados}
+  gasto_militar:        {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e12], descripcion: Soldada pagada}
+  gasto_civil:          {bloque: M, tipo: flujo,    unidad: t/año,         rango: [0, 1.0e12], descripcion: Gasto civil pagado}
+  # Ejército y guerra (M)
+  ejercito:             {bloque: M, tipo: stock,    unidad: personas,      rango: [0, 1.0e8],  descripcion: Soldados en armas}
+  reclutas:             {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e8],  descripcion: Reclutamiento}
+  bajas_militares:      {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e8],  descripcion: Soldados muertos en combate}
+  licenciados:          {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e8],  descripcion: Soldados licenciados}
+  guerras_libradas:     {bloque: M, tipo: flujo,    unidad: guerras/año,   rango: [0, 4],      descripcion: Guerras en que participa la entidad}
+  territorio:           {bloque: M, tipo: stock,    unidad: km2,           rango: [0, 1.0e8],  descripcion: Territorio controlado}
+  territorio_ganado:    {bloque: M, tipo: flujo,    unidad: km2/año,       rango: [0, 1.0e8],  descripcion: Territorio conquistado}
+  territorio_perdido:   {bloque: M, tipo: flujo,    unidad: km2/año,       rango: [0, 1.0e8],  descripcion: Territorio cedido}
+  # Élites y política (M)
+  elites:               {bloque: M, tipo: stock,    unidad: personas,      rango: [0, 1.0e8],  descripcion: Élites y aspirantes}
+  entrada_elites:       {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e8],  descripcion: Ingreso en la élite}
+  salida_elites:        {bloque: M, tipo: flujo,    unidad: personas/año,  rango: [0, 1.0e8],  descripcion: "Salida de la élite (muerte, purga o descenso)"}
+  legitimidad:          {bloque: M, tipo: estado,   unidad: índice,        rango: [0, 1],      descripcion: Legitimidad del poder}
+  inestabilidad:        {bloque: M, tipo: estado,   unidad: índice,        rango: [0, 1],      descripcion: Presión de crisis interna}
+  revuelta_magnitud:    {bloque: M, tipo: flujo,    unidad: índice,        rango: [0, 1],      descripcion: Tamaño de la revuelta del año (0 si no hay)}
+  # Epidemias (E/M)
+  epidemia_mortalidad:  {bloque: M, tipo: estado,   unidad: fracción/año,  rango: [0, 0.5],    descripcion: Mortalidad epidémica del año}
+  inmunidad:            {bloque: M, tipo: estado,   unidad: fracción,      rango: [0, 1],      descripcion: Inmunidad adquirida}
+  # Actores (A): gobernante de cada entidad
+  gobernante_edad:      {bloque: A, tipo: estado,   unidad: años,          rango: [0, 130],    descripcion: Edad del gobernante}
+  gobernante_fragilidad: {bloque: A, tipo: estado,  unidad: multiplicador de riesgo, rango: [0.01, 30], descripcion: Fragilidad intrínseca}
+  gobernante_capacidad: {bloque: A, tipo: estado,   unidad: desviaciones típicas, rango: [-9, 9], descripcion: Rasgo de capacidad del gobernante}
+  gobernante_mandato:   {bloque: A, tipo: estado,   unidad: años,          rango: [0, 130],    descripcion: Años en el cargo}
+  gobernante_murio:     {bloque: A, tipo: flujo,    unidad: indicador,     rango: [0, 1],      descripcion: 1 si el gobernante murió este año}
+
+# --------------------------------------------------------------------------------- parámetros
+parametros:
+  # volcán
+  vol_p:              {<<: *sup, valor: 0.03,   unidad: 1/año,  prior: {familia: uniforme, rango: [0.01, 0.06]}}
+  vol_xm:             {<<: *sup, valor: 0.5,    unidad: forzamiento, prior: {familia: uniforme, rango: [0.2, 1.0]}}
+  vol_alfa:           {<<: *sup, valor: 1.5,    unidad: "1",    prior: {familia: uniforme, rango: [1.2, 2.0]}}
+  vol_max:            {<<: *sup, valor: 25.0,   unidad: forzamiento, prior: {familia: uniforme, rango: [10, 40]}, descripcion: cota física de la mayor erupción}
+  vol_persistencia:   {<<: *sup, valor: 0.4,    unidad: "1",    prior: {familia: uniforme, rango: [0.2, 0.6]}}
+  # clima
+  clima_rho:          {<<: *sup, valor: 0.3,    unidad: "1",    prior: {familia: uniforme, rango: [0.0, 0.6]}}
+  clima_sigma:        {<<: *sup, valor: 1.0,    unidad: sd,     prior: {familia: uniforme, rango: [0.5, 1.5]}}
+  clima_gamma_volcan: {<<: *sup, valor: 0.5,    unidad: sd/forzamiento, prior: {familia: uniforme, rango: [0.2, 1.0]}}
+  clima_p_adversa:    {<<: *sup, valor: 0.158655, unidad: probabilidad, prior: {familia: degenerado, rango: [0.158655, 0.158655]}, descripcion: "definición del suceso «innovación adversa» (cuantil Φ(−1))"}
+  # técnica
+  tec_r:              {<<: *sup, valor: 0.004,  unidad: 1/año,  prior: {familia: log-uniforme, rango: [0.001, 0.01]}}
+  tec_max:            {<<: *sup, valor: 8.0,    unidad: índice, prior: {familia: uniforme, rango: [4, 12]}}
+  tec_difusion:       {<<: *sup, valor: 0.02,   unidad: 1/año,  prior: {familia: log-uniforme, rango: [0.005, 0.05]}}
+  tec_p_inv:          {<<: *sup, valor: 0.01,   unidad: 1/año,  prior: {familia: log-uniforme, rango: [0.002, 0.03]}}
+  tec_salto:          {<<: *sup, valor: 0.05,   unidad: fracción, prior: {familia: uniforme, rango: [0.01, 0.1]}}
+  # agricultura
+  frac_cultivable:    {<<: *sup, valor: 0.3,    unidad: fracción, prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  ha_por_persona:     {<<: *sup, valor: 1.0,    unidad: ha/persona, prior: {familia: uniforme, rango: [0.5, 2.0]}}
+  agr_y0:             {<<: *sup, valor: 0.6,    unidad: t/ha,   prior: {familia: uniforme, rango: [0.3, 1.0]}}
+  agr_tec_elast:      {<<: *sup, valor: 0.3,    unidad: "1",    prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  agr_beta_clima:     {<<: *sup, valor: 0.12,   unidad: 1/sd,   prior: {familia: uniforme, rango: [0.05, 0.2]}}
+  agr_clima_min:      {<<: *sup, valor: 0.2,    unidad: "1",    prior: {familia: uniforme, rango: [0.1, 0.4]}}
+  agr_clima_max:      {<<: *sup, valor: 1.3,    unidad: "1",    prior: {familia: uniforme, rango: [1.1, 1.5]}}
+  agr_rend_decreciente: {<<: *sup, valor: 0.3,  unidad: "1",    prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  agr_ajuste:         {<<: *sup, valor: 0.1,    unidad: 1/año,  prior: {familia: uniforme, rango: [0.05, 0.3]}}
+  # comercio y consumo
+  com_kappa:          {<<: *sup, valor: 0.2,    unidad: 1/año,  prior: {familia: uniforme, rango: [0.05, 0.5]}}
+  com_cap:            {<<: *sup, valor: 0.1,    unidad: fracción, prior: {familia: uniforme, rango: [0.05, 0.2]}}
+  cons_necesidad:     {<<: *sup, valor: 0.25,   unidad: t/persona/año, prior: {familia: uniforme, rango: [0.2, 0.3]}}
+  cons_max_frac:      {<<: *sup, valor: 0.9,    unidad: fracción, prior: {familia: uniforme, rango: [0.8, 0.95]}}
+  merma:              {<<: *sup, valor: 0.1,    unidad: fracción/año, prior: {familia: uniforme, rango: [0.05, 0.2]}}
+  # demografía
+  dem_natalidad:      {<<: *sup, valor: 0.042,  unidad: 1/año,  prior: {familia: uniforme, rango: [0.035, 0.05]}}
+  dem_natal_hambre:   {<<: *sup, valor: 0.5,    unidad: "1",    prior: {familia: uniforme, rango: [0.2, 0.8]}}
+  dem_mortalidad:     {<<: *sup, valor: 0.035,  unidad: 1/año,  prior: {familia: uniforme, rango: [0.028, 0.042]}}
+  dem_sigma:          {<<: *sup, valor: 0.05,   unidad: "1",    prior: {familia: uniforme, rango: [0.02, 0.1]}}
+  dem_hambre:         {<<: *sup, valor: 0.3,    unidad: 1/año,  prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  # epidemias
+  epi_p_ext:          {<<: *sup, valor: 0.01,   unidad: 1/año,  prior: {familia: log-uniforme, rango: [0.003, 0.03]}}
+  epi_p_contagio:     {<<: *sup, valor: 0.5,    unidad: 1/(fracción año), prior: {familia: uniforme, rango: [0.1, 1.0]}}
+  epi_p_max:          {<<: *sup, valor: 0.5,    unidad: probabilidad, prior: {familia: uniforme, rango: [0.3, 0.7]}}
+  epi_xm:             {<<: *sup, valor: 0.01,   unidad: fracción, prior: {familia: uniforme, rango: [0.005, 0.03]}}
+  epi_alfa:           {<<: *sup, valor: 1.4,    unidad: "1",    prior: {familia: uniforme, rango: [1.0, 2.0]}}
+  epi_max:            {<<: *sup, valor: 0.4,    unidad: fracción, prior: {familia: uniforme, rango: [0.3, 0.5]}, descripcion: cota de mortalidad epidémica anual}
+  epi_decaimiento:    {<<: *sup, valor: 0.2,    unidad: "1",    prior: {familia: uniforme, rango: [0.1, 0.4]}}
+  inm_decaimiento:    {<<: *sup, valor: 0.92,   unidad: "1",    prior: {familia: uniforme, rango: [0.85, 0.97]}}
+  inm_ganancia:       {<<: *sup, valor: 1.5,    unidad: "1",    prior: {familia: uniforme, rango: [0.5, 3.0]}}
+  # migración y urbanización
+  mig_mu:             {<<: *sup, valor: 0.05,   unidad: 1/año,  prior: {familia: uniforme, rango: [0.01, 0.1]}}
+  mig_cap:            {<<: *sup, valor: 0.02,   unidad: fracción, prior: {familia: uniforme, rango: [0.01, 0.04]}}
+  urb_base:           {<<: *sup, valor: 0.05,   unidad: fracción, prior: {familia: uniforme, rango: [0.02, 0.08]}}
+  urb_max:            {<<: *sup, valor: 0.3,    unidad: fracción, prior: {familia: uniforme, rango: [0.2, 0.4]}}
+  urb_pendiente:      {<<: *sup, valor: 1.0,    unidad: 1/índice, prior: {familia: uniforme, rango: [0.5, 2.0]}}
+  urb_T0:             {<<: *sup, valor: 2.0,    unidad: índice, prior: {familia: uniforme, rango: [1.0, 4.0]}}
+  urb_ajuste:         {<<: *sup, valor: 0.05,   unidad: 1/año,  prior: {familia: uniforme, rango: [0.02, 0.1]}}
+  # gobernantes
+  gob_gompertz_a:     {<<: *sup, valor: 0.004,  unidad: 1/año,  prior: {familia: log-uniforme, rango: [0.002, 0.008]}}
+  gob_gompertz_b:     {<<: *sup, valor: 0.08,   unidad: 1/año,  prior: {familia: uniforme, rango: [0.06, 0.1]}}
+  gob_q_min:          {<<: *sup, valor: 0.002,  unidad: probabilidad, prior: {familia: log-uniforme, rango: [0.001, 0.005]}}
+  gob_q_max:          {<<: *sup, valor: 0.95,   unidad: probabilidad, prior: {familia: uniforme, rango: [0.9, 0.99]}}
+  gob_edad_min:       {<<: *sup, valor: 18.0,   unidad: años,   prior: {familia: uniforme, rango: [15, 25]}}
+  gob_edad_rango:     {<<: *sup, valor: 30.0,   unidad: años,   prior: {familia: uniforme, rango: [20, 40]}}
+  gob_frag_sigma:     {<<: *sup, valor: 0.3,    unidad: "1",    prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  gob_shock_sucesion: {<<: *sup, valor: 0.15,   unidad: fracción, prior: {familia: uniforme, rango: [0.05, 0.3]}}
+  # militar
+  mil_frac:           {<<: *sup, valor: 0.01,   unidad: fracción, prior: {familia: uniforme, rango: [0.005, 0.02]}}
+  mil_ajuste:         {<<: *sup, valor: 0.2,    unidad: 1/año,  prior: {familia: uniforme, rango: [0.1, 0.4]}}
+  mil_reclut_max:     {<<: *sup, valor: 0.02,   unidad: fracción/año, prior: {familia: uniforme, rango: [0.01, 0.04]}}
+  mil_amenaza_max:    {<<: *sup, valor: 2.0,    unidad: "1",    prior: {familia: uniforme, rango: [1.0, 3.0]}}
+  mil_amenaza_peso:   {<<: *sup, valor: 0.5,    unidad: "1",    prior: {familia: uniforme, rango: [0.2, 1.0]}}
+  mil_tope:           {<<: *sup, valor: 0.1,    unidad: fracción, prior: {familia: uniforme, rango: [0.05, 0.15]}}
+  mil_soldada:        {<<: *sup, valor: 0.5,    unidad: t/soldado/año, prior: {familia: uniforme, rango: [0.3, 1.0]}}
+  # guerra
+  gue_p0:             {<<: *sup, valor: 0.02,   unidad: 1/año,  prior: {familia: log-uniforme, rango: [0.005, 0.05]}}
+  gue_inest:          {<<: *sup, valor: 2.0,    unidad: "1",    prior: {familia: uniforme, rango: [0.5, 4.0]}}
+  gue_p_max:          {<<: *sup, valor: 0.5,    unidad: probabilidad, prior: {familia: uniforme, rango: [0.3, 0.7]}}
+  gue_peso_gob:       {<<: *sup, valor: 0.2,    unidad: "1",    prior: {familia: uniforme, rango: [0.0, 0.5]}}
+  gue_sorpresa_min:   {<<: *sup, valor: 0.02,   unidad: probabilidad, prior: {familia: uniforme, rango: [0.01, 0.05]}, descripcion: tasa base de sorpresas en batalla}
+  gue_xm:             {<<: *sup, valor: 0.01,   unidad: fracción, prior: {familia: uniforme, rango: [0.005, 0.03]}}
+  gue_alfa:           {<<: *sup, valor: 1.5,    unidad: "1",    prior: {familia: uniforme, rango: [1.2, 2.0]}}
+  gue_max:            {<<: *sup, valor: 0.2,    unidad: fracción, prior: {familia: uniforme, rango: [0.15, 0.24]}, descripcion: "cota por arista (4 aristas × cota < 1)"}
+  gue_bajas_ganador:  {<<: *sup, valor: 0.5,    unidad: "1",    prior: {familia: uniforme, rango: [0.3, 0.8]}}
+  gue_civiles:        {<<: *sup, valor: 0.05,   unidad: "1",    prior: {familia: uniforme, rango: [0.01, 0.1]}}
+  gue_territorio:     {<<: *sup, valor: 0.5,    unidad: "1",    prior: {familia: uniforme, rango: [0.2, 0.8]}}
+  gue_legit_victoria: {<<: *sup, valor: 0.03,   unidad: índice, prior: {familia: uniforme, rango: [0.01, 0.05]}}
+  gue_legit_derrota:  {<<: *sup, valor: 0.05,   unidad: índice, prior: {familia: uniforme, rango: [0.02, 0.1]}}
+  # fiscalidad
+  fis_interes:        {<<: *sup, valor: 0.08,   unidad: 1/año,  prior: {familia: uniforme, rango: [0.04, 0.15]}}
+  fis_gasto_civil:    {<<: *sup, valor: 0.3,    unidad: fracción, prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  fis_lim_deuda:      {<<: *sup, valor: 3.0,    unidad: años de ingresos, prior: {familia: uniforme, rango: [1.0, 5.0]}}
+  fis_reserva:        {<<: *sup, valor: 0.5,    unidad: años de ingresos, prior: {familia: uniforme, rango: [0.2, 1.0]}}
+  fis_frac_amort:     {<<: *sup, valor: 0.5,    unidad: fracción, prior: {familia: uniforme, rango: [0.2, 0.8]}}
+  fis_lim_impago:     {<<: *sup, valor: 4.0,    unidad: años de ingresos, prior: {familia: uniforme, rango: [2.0, 6.0]}}
+  fis_frac_impago:    {<<: *sup, valor: 0.5,    unidad: fracción, prior: {familia: uniforme, rango: [0.2, 0.8]}}
+  fis_shock_impago:   {<<: *sup, valor: 0.05,   unidad: índice, prior: {familia: uniforme, rango: [0.02, 0.1]}}
+  fis_cap_shock:      {<<: *sup, valor: 0.05,   unidad: fracción, prior: {familia: uniforme, rango: [0.02, 0.1]}}
+  fis_tasa_paso:      {<<: *sup, valor: 0.005,  unidad: fracción/año, prior: {familia: uniforme, rango: [0.001, 0.01]}}
+  fis_tasa_max:       {<<: *sup, valor: 0.35,   unidad: fracción, prior: {familia: uniforme, rango: [0.25, 0.45]}}
+  fis_tasa_base:      {<<: *sup, valor: 0.1,    unidad: fracción, prior: {familia: uniforme, rango: [0.05, 0.15]}}
+  fis_tasa_relaj:     {<<: *sup, valor: 0.05,   unidad: 1/año,  prior: {familia: uniforme, rango: [0.01, 0.1]}}
+  fis_cap_aprendizaje: {<<: *sup, valor: 0.01,  unidad: 1/año,  prior: {familia: uniforme, rango: [0.002, 0.02]}}
+  fis_cap_gob:        {<<: *sup, valor: 0.5,    unidad: "1",    prior: {familia: uniforme, rango: [0.0, 1.0]}}
+  # crisis interna y élites
+  cri_pendiente:      {<<: *sup, valor: 4.0,    unidad: "1",    prior: {familia: uniforme, rango: [2.0, 8.0]}}
+  cri_w_elite:        {<<: *sup, valor: 1.0,    unidad: "1",    prior: {familia: uniforme, rango: [0.5, 2.0]}}
+  cri_w_fiscal:       {<<: *sup, valor: 1.0,    unidad: "1",    prior: {familia: uniforme, rango: [0.5, 2.0]}}
+  cri_w_hambre:       {<<: *sup, valor: 2.0,    unidad: "1",    prior: {familia: uniforme, rango: [1.0, 4.0]}}
+  cri_w_legit:        {<<: *sup, valor: 1.0,    unidad: "1",    prior: {familia: uniforme, rango: [0.5, 2.0]}}
+  cri_umbral:         {<<: *sup, valor: 1.0,    unidad: "1",    prior: {familia: uniforme, rango: [0.5, 1.5]}}
+  cri_ajuste:         {<<: *sup, valor: 0.2,    unidad: 1/año,  prior: {familia: uniforme, rango: [0.1, 0.4]}}
+  cri_r0:             {<<: *sup, valor: 0.3,    unidad: 1/año,  prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  cri_q_min:          {<<: *sup, valor: 0.0005, unidad: probabilidad, prior: {familia: log-uniforme, rango: [0.0001, 0.002]}, descripcion: tasa base de revueltas}
+  cri_q_max:          {<<: *sup, valor: 0.5,    unidad: probabilidad, prior: {familia: uniforme, rango: [0.3, 0.7]}}
+  cri_xm:             {<<: *sup, valor: 0.05,   unidad: índice, prior: {familia: uniforme, rango: [0.02, 0.1]}}
+  cri_alfa:           {<<: *sup, valor: 1.5,    unidad: "1",    prior: {familia: uniforme, rango: [1.0, 2.0]}}
+  cri_legit_rev:      {<<: *sup, valor: 0.3,    unidad: índice, prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  cri_alivio:         {<<: *sup, valor: 0.5,    unidad: "1",    prior: {familia: uniforme, rango: [0.2, 0.8]}}
+  cri_cap_rev:        {<<: *sup, valor: 0.2,    unidad: fracción, prior: {familia: uniforme, rango: [0.05, 0.3]}}
+  leg_ajuste:         {<<: *sup, valor: 0.05,   unidad: 1/año,  prior: {familia: uniforme, rango: [0.02, 0.1]}}
+  leg_base:           {<<: *sup, valor: 0.6,    unidad: índice, prior: {familia: uniforme, rango: [0.4, 0.8]}}
+  leg_gob:            {<<: *sup, valor: 0.1,    unidad: índice, prior: {familia: uniforme, rango: [0.0, 0.2]}}
+  el_crecimiento:     {<<: *sup, valor: 0.03,   unidad: 1/año,  prior: {familia: uniforme, rango: [0.01, 0.05]}}
+  el_ratio_max:       {<<: *sup, valor: 0.05,   unidad: fracción, prior: {familia: uniforme, rango: [0.03, 0.08]}}
+  el_ratio_ref:       {<<: *sup, valor: 0.015,  unidad: fracción, prior: {familia: uniforme, rango: [0.01, 0.02]}}
+  el_mortalidad:      {<<: *sup, valor: 0.02,   unidad: 1/año,  prior: {familia: uniforme, rango: [0.015, 0.03]}}
+  el_purga:           {<<: *sup, valor: 0.3,    unidad: "1",    prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  el_tope:            {<<: *sup, valor: 0.1,    unidad: fracción, prior: {familia: uniforme, rango: [0.05, 0.15]}}
+  # estado inicial (prior de prueba; en F1+ lo sustituye la asimilación)
+  ini_terr_min:       {<<: *sup, valor: 5.0e4,  unidad: km2,    prior: {familia: uniforme, rango: [2.0e4, 1.0e5]}}
+  ini_terr_max:       {<<: *sup, valor: 2.0e5,  unidad: km2,    prior: {familia: uniforme, rango: [1.0e5, 4.0e5]}}
+  ini_ocup_min:       {<<: *sup, valor: 0.3,    unidad: fracción, prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  ini_ocup_max:       {<<: *sup, valor: 0.7,    unidad: fracción, prior: {familia: uniforme, rango: [0.5, 0.9]}}
+  ini_res_min:        {<<: *sup, valor: 0.2,    unidad: años de necesidad, prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  ini_res_max:        {<<: *sup, valor: 0.5,    unidad: años de necesidad, prior: {familia: uniforme, rango: [0.3, 1.0]}}
+  ini_tec_min:        {<<: *sup, valor: 0.8,    unidad: índice, prior: {familia: uniforme, rango: [0.5, 1.0]}}
+  ini_tec_max:        {<<: *sup, valor: 1.5,    unidad: índice, prior: {familia: uniforme, rango: [1.0, 2.0]}}
+  ini_tasa_min:       {<<: *sup, valor: 0.05,   unidad: fracción, prior: {familia: uniforme, rango: [0.02, 0.08]}}
+  ini_tasa_max:       {<<: *sup, valor: 0.15,   unidad: fracción, prior: {familia: uniforme, rango: [0.1, 0.2]}}
+  ini_cap_min:        {<<: *sup, valor: 0.3,    unidad: fracción, prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  ini_cap_max:        {<<: *sup, valor: 0.7,    unidad: fracción, prior: {familia: uniforme, rango: [0.5, 0.9]}}
+  ini_tesoro_anios:   {<<: *sup, valor: 1.0,    unidad: años de ingresos, prior: {familia: uniforme, rango: [0.0, 2.0]}}
+  ini_deuda_anios:    {<<: *sup, valor: 1.0,    unidad: años de ingresos, prior: {familia: uniforme, rango: [0.0, 2.0]}}
+  ini_leg_min:        {<<: *sup, valor: 0.4,    unidad: índice, prior: {familia: uniforme, rango: [0.2, 0.5]}}
+  ini_leg_max:        {<<: *sup, valor: 0.8,    unidad: índice, prior: {familia: uniforme, rango: [0.6, 0.9]}}
+  ini_inest_max:      {<<: *sup, valor: 0.3,    unidad: índice, prior: {familia: uniforme, rango: [0.1, 0.5]}}
+  ini_urb_min:        {<<: *sup, valor: 0.03,   unidad: fracción, prior: {familia: uniforme, rango: [0.01, 0.05]}}
+  ini_urb_max:        {<<: *sup, valor: 0.1,    unidad: fracción, prior: {familia: uniforme, rango: [0.05, 0.15]}}
+  ini_gob_edad_min:   {<<: *sup, valor: 18.0,   unidad: años,   prior: {familia: uniforme, rango: [15, 25]}}
+  ini_gob_edad_max:   {<<: *sup, valor: 60.0,   unidad: años,   prior: {familia: uniforme, rango: [45, 70]}}
+  ini_mandato_max:    {<<: *sup, valor: 20.0,   unidad: años,   prior: {familia: uniforme, rango: [5, 30]}}
+  ini_inm_max:        {<<: *sup, valor: 0.2,    unidad: fracción, prior: {familia: uniforme, rango: [0.0, 0.4]}}
+
+# --------------------------------------------------------------------------------- fuentes de azar
+# tiempo_identidad_anios: tiempo durante el que la fuente se comparte entre el mundo real y el
+# alternativo, contado desde que los dos mundos divergen físicamente (§4.3, ADR-0002).
+fuentes:
+  inicial:
+    familia: difusiva
+    dominio: entidad
+    ranuras: 18
+    tiempo_identidad_anios: inf
+    justificacion_identidad: "Estado inicial común a ambos brazos por construcción (consulta I parte de un mismo estado en t0)."
+    descripcion: "Muestreo del estado inicial desde el prior de prueba F0."
+  volcan:
+    familia: salto_pesado
+    dominio: global
+    ranuras: 2
+    tiempo_identidad_anios: inf
+    indice_cola: {nominal: 1.5, intervalo: [1.2, 2.0]}
+    justificacion_identidad: "Forzamiento volcánico: nada humano lo desacopla (§4.3)."
+    eventos:
+      - {nombre: erupcion,     ranura: 0, descripcion: "Hay erupción este año"}
+      - {nombre: sin_erupcion, ranura: 0, descripcion: "No hay erupción este año"}
+    descripcion: "Ocurrencia (ranura 0) y magnitud Pareto truncada (ranura 1) de erupciones."
+  clima_interno:
+    familia: difusiva
+    dominio: entidad
+    ranuras: 1
+    tiempo_identidad_anios: 0.05
+    inclinable: true
+    justificacion_identidad: "Variabilidad interna de la atmósfera: caótica, se desacopla en semanas (Lorenz, 1969)."
+    eventos:
+      - {nombre: innovacion_adversa,    ranura: 0, descripcion: "La innovación climática del año cae bajo el cuantil Φ(−1)"}
+      - {nombre: innovacion_no_adversa, ranura: 0, descripcion: "La innovación climática del año no cae bajo el cuantil Φ(−1)"}
+    descripcion: "Innovación gaussiana de la anomalía climática regional."
+  invencion:
+    familia: salto_ligero
+    dominio: entidad
+    ranuras: 1
+    tiempo_identidad_anios: 1
+    justificacion_identidad: "Se comparte la tasa (estado); la identidad del inventor se re-sortea en un año (§4.3)."
+    eventos:
+      - {nombre: invencion,     ranura: 0, descripcion: "Hay un salto técnico este año"}
+      - {nombre: sin_invencion, ranura: 0, descripcion: "No hay salto técnico este año"}
+    descripcion: "Saltos de invención."
+  vital:
+    familia: difusiva
+    dominio: entidad
+    ranuras: 2
+    tiempo_identidad_anios: 1
+    inclinable: true
+    justificacion_identidad: "Lotería genética y de cohortes: los concebidos tras un año son otros (A8)."
+    descripcion: "Ruido agregado de natalidad (ranura 0) y mortalidad ordinaria (ranura 1)."
+  epidemia:
+    familia: salto_pesado
+    dominio: entidad
+    ranuras: 2
+    tiempo_identidad_anios: 20
+    indice_cola: {nominal: 1.4, intervalo: [1.0, 2.0]}
+    justificacion_identidad: "Salto de patógenos: se comparte el reservorio, la fecha se re-sortea en décadas (§4.3)."
+    eventos:
+      - {nombre: brote,     ranura: 0, descripcion: "Comienza un brote este año"}
+      - {nombre: sin_brote, ranura: 0, descripcion: "No comienza un brote este año"}
+    descripcion: "Ocurrencia (ranura 0) y virulencia Pareto truncada (ranura 1) de brotes (Cirillo y Taleb, 2020)."
+  muerte_gobernante:
+    familia: salto_ligero
+    dominio: entidad
+    ranuras: 1
+    tiempo_identidad_anios: 2
+    justificacion_identidad: "Muerte de los vivos en t0: se comparte la fragilidad (estado), la exposición se re-sortea en años (§4.3)."
+    eventos:
+      - {nombre: muere,     ranura: 0, descripcion: "El gobernante muere este año"}
+      - {nombre: sobrevive, ranura: 0, descripcion: "El gobernante sobrevive este año"}
+    descripcion: "Muerte del gobernante con riesgo de Gompertz por fragilidad."
+  sucesion:
+    familia: salto_ligero
+    dominio: entidad
+    ranuras: 3
+    tiempo_identidad_anios: 1
+    justificacion_identidad: "Rasgos de un sucesor concebido tras el POD: otra persona (A8)."
+    descripcion: "Edad (ranura 0), fragilidad (ranura 1) y capacidad (ranura 2) del sucesor."
+  guerra:
+    familia: salto_ligero
+    dominio: arista
+    ranuras: 1
+    tiempo_identidad_anios: 1
+    justificacion_identidad: "Decisión de actores vivos: compartida hasta que el POD alcanza su contexto (supuesto: un año)."
+    eventos:
+      - {nombre: estalla, ranura: 0, descripcion: "Estalla una guerra en la arista este año"}
+      - {nombre: paz,     ranura: 0, descripcion: "No estalla guerra en la arista este año"}
+    descripcion: "Estallido de guerra entre entidades vecinas."
+  batalla:
+    familia: salto_ligero
+    dominio: arista
+    ranuras: 1
+    tiempo_identidad_anios: 0.05
+    justificacion_identidad: "Desenlace de batalla: dependiente de tiempo atmosférico y microcontingencias (semanas)."
+    eventos:
+      - {nombre: gana_a, ranura: 0, descripcion: "Si hay guerra en la arista, gana el extremo a"}
+      - {nombre: gana_b, ranura: 0, descripcion: "Si hay guerra en la arista, gana el extremo b"}
+    descripcion: "Resultado de Lanchester estocástico con tasa base de sorpresas."
+  batalla_magnitud:
+    familia: salto_pesado
+    dominio: arista
+    ranuras: 1
+    tiempo_identidad_anios: 0.05
+    indice_cola: {nominal: 1.5, intervalo: [1.3, 2.0]}
+    justificacion_identidad: "Tamaño del choque: microcontingencias de campaña (semanas)."
+    descripcion: "Fracción de bajas Pareto truncada (Richardson, 1948; Clauset, 2018)."
+  revuelta:
+    familia: salto_pesado
+    dominio: entidad
+    ranuras: 2
+    tiempo_identidad_anios: 0.05
+    indice_cola: {nominal: 1.5, intervalo: [1.0, 2.0]}
+    justificacion_identidad: "Cascada de umbral: disparada por sucesos locales de días o semanas."
+    eventos:
+      - {nombre: revuelta, ranura: 0, descripcion: "Estalla una revuelta este año"}
+      - {nombre: calma,    ranura: 0, descripcion: "No estalla revuelta este año"}
+    descripcion: "Ocurrencia (ranura 0) y tamaño Pareto truncado (ranura 1) de revueltas (Granovetter, 1978)."
+
+# --------------------------------------------------------------------------------- identidades (A3)
+identidades:
+  poblacion:
+    tipo: stock_flujo
+    stock: poblacion
+    entradas: [nacimientos, inmigrantes]
+    salidas: [muertes_ordinarias, muertes_hambre, muertes_epidemia, muertes_guerra, emigrantes]
+    descripcion: "Balance demográfico por entidad."
+  migracion_global:
+    tipo: conservacion_global
+    izquierda: [inmigrantes]
+    derecha: [emigrantes]
+    descripcion: "Nadie aparece ni desaparece al migrar."
+  grano:
+    tipo: stock_flujo
+    stock: reservas
+    entradas: [produccion, importaciones]
+    salidas: [ingresos_fiscales, exportaciones, consumo, mermas]
+    descripcion: "Balance de grano privado."
+  comercio_global:
+    tipo: conservacion_global
+    izquierda: [exportaciones]
+    derecha: [importaciones]
+    descripcion: "Todo grano exportado es importado por alguien."
+  tesoro:
+    tipo: stock_flujo
+    stock: tesoro
+    entradas: [ingresos_fiscales, prestamos]
+    salidas: [gasto_militar, gasto_civil, intereses, amortizacion]
+    descripcion: "Caja del Estado."
+  deuda:
+    tipo: stock_flujo
+    stock: deuda
+    entradas: [prestamos]
+    salidas: [amortizacion, impago]
+    descripcion: "Deuda pública."
+  ejercito:
+    tipo: stock_flujo
+    stock: ejercito
+    entradas: [reclutas]
+    salidas: [bajas_militares, licenciados]
+    descripcion: "Efectivos militares."
+  elites:
+    tipo: stock_flujo
+    stock: elites
+    entradas: [entrada_elites]
+    salidas: [salida_elites]
+    descripcion: "Número de élites."
+  territorio:
+    tipo: stock_flujo
+    stock: territorio
+    entradas: [territorio_ganado]
+    salidas: [territorio_perdido]
+    descripcion: "Territorio por entidad."
+  territorio_global:
+    tipo: stock_global_constante
+    stock: territorio
+    descripcion: "La superficie total no cambia."
+  transferencias_territorio:
+    tipo: conservacion_global
+    izquierda: [territorio_ganado]
+    derecha: [territorio_perdido]
+    descripcion: "Lo que uno gana otro lo pierde."
+  ejercito_en_poblacion:
+    tipo: desigualdad
+    menor: ejercito
+    mayor: poblacion
+    descripcion: "Los soldados son parte de la población."
+  elites_en_poblacion:
+    tipo: desigualdad
+    menor: elites
+    mayor: poblacion
+    descripcion: "Las élites son parte de la población."
+  bajas_en_muertes_guerra:
+    tipo: desigualdad
+    menor: bajas_militares
+    mayor: muertes_guerra
+    descripcion: "Las bajas militares son parte de las muertes de guerra."
+
+# --------------------------------------------------------------------------------- observables macro
+observables:
+  poblacion_total:        {variable: poblacion,          reduccion: suma,  unidad: personas,  descripcion: Población del sistema}
+  produccion_total:       {variable: produccion,         reduccion: suma,  unidad: t/año,     descripcion: Cosecha del sistema}
+  reservas_totales:       {variable: reservas,           reduccion: suma,  unidad: t,         descripcion: Grano almacenado}
+  ingresos_totales:       {variable: ingresos_fiscales,  reduccion: suma,  unidad: t/año,     descripcion: Recaudación total}
+  deuda_total:            {variable: deuda,              reduccion: suma,  unidad: t,         descripcion: Deuda pública total}
+  ejercito_total:         {variable: ejercito,           reduccion: suma,  unidad: personas,  descripcion: Soldados en armas}
+  rendimiento_medio:      {variable: rendimiento,        reduccion: media, unidad: t/ha,      descripcion: Rendimiento medio por entidad}
+  tecnologia_media:       {variable: tecnologia,         reduccion: media, unidad: índice,    descripcion: Nivel técnico medio}
+  urbanizacion_media:     {variable: urbanizacion,       reduccion: media, unidad: fracción,  descripcion: Urbanización media}
+  legitimidad_media:      {variable: legitimidad,        reduccion: media, unidad: índice,    descripcion: Legitimidad media}
+  inestabilidad_media:    {variable: inestabilidad,      reduccion: media, unidad: índice,    descripcion: Inestabilidad media}
+  suficiencia_media:      {variable: suficiencia_alimentaria, reduccion: media, unidad: fracción, descripcion: Suficiencia alimentaria media}
+  concentracion_territorial: {variable: territorio,      reduccion: herfindahl, unidad: "1",  descripcion: Índice de Herfindahl del territorio}
+  territorio_mayor:       {variable: territorio,         reduccion: max,   unidad: km2,       descripcion: Territorio de la mayor entidad}
+  participaciones_guerra: {variable: guerras_libradas,   reduccion: suma,  unidad: participaciones/año, descripcion: "Suma de guerras por entidad (cada guerra cuenta dos veces)"}
+  muertes_epidemia_total: {variable: muertes_epidemia,   reduccion: suma,  unidad: personas/año, descripcion: Mortalidad epidémica}
+  muertes_guerra_total:   {variable: muertes_guerra,     reduccion: suma,  unidad: personas/año, descripcion: Mortalidad bélica}
+  revueltas:              {variable: revuelta_magnitud,  reduccion: suma,  unidad: índice,    descripcion: Suma de magnitudes de revuelta}
+  sucesiones:             {variable: gobernante_murio,   reduccion: suma,  unidad: gobernantes/año, descripcion: Gobernantes muertos en el año}
+  erupcion:               {variable: erupcion,           reduccion: valor, unidad: forzamiento, descripcion: Magnitud de la erupción del año}
+  forzamiento_volcanico:  {variable: forzamiento_volcanico, reduccion: valor, unidad: forzamiento, descripcion: Forzamiento volcánico}
+
+# --------------------------------------------------------------------------------- fichas de mecanismo (§14.2)
+x-evidencia: &prueba
+  referencias: ["ninguna: mecanismo de prueba de ingeniería F0"]
+  nota: "Sin evidencia histórica. Solo ejercita el motor. Los rivales y los tests de hindcast llegan en F2."
+
+estado_inicial:
+  ecuacion: "Muestreo independiente por entidad del prior de prueba (uniformes y lognormales acotadas)."
+  lee: []
+  escribe: [territorio, tierra_cultivada, poblacion, reservas, tecnologia, tasa_fiscal, capacidad_fiscal, tesoro, deuda,
+            ejercito, elites, legitimidad, inestabilidad, urbanizacion, gobernante_edad, gobernante_fragilidad,
+            gobernante_capacidad, gobernante_mandato, inmunidad, anomalia_clima, epidemia_mortalidad, rendimiento,
+            suficiencia_alimentaria, salario_real, forzamiento_volcanico]
+  parametros: [ini_terr_min, ini_terr_max, frac_cultivable, ini_ocup_min, ini_ocup_max, ha_por_persona, ini_tasa_min,
+               ini_tasa_max, ini_cap_min, ini_cap_max, agr_y0, cons_necesidad, ini_res_min, ini_res_max, ini_tec_min,
+               ini_tec_max, ini_tesoro_anios, ini_deuda_anios, mil_frac, el_ratio_ref, ini_leg_min, ini_leg_max,
+               ini_inest_max, ini_urb_min, ini_urb_max, ini_gob_edad_min, ini_gob_edad_max, gob_frag_sigma,
+               ini_mandato_max, ini_inm_max, clima_sigma, clima_rho]
+  fuentes: [inicial]
+  circuitos: {}
+  evidencia: *prueba
+
+mecanismos:
+  forzamiento_volcanico:
+    ecuacion: "F(t) = ρ_v F(t−1) + 1[u0 < p_v] · min(x_m u1^(−1/α_v), x_max)"
+    lee: [forzamiento_volcanico]
+    escribe: [erupcion, forzamiento_volcanico]
+    parametros: [vol_p, vol_xm, vol_alfa, vol_max, vol_persistencia]
+    fuentes: [volcan]
+    circuitos: {}
+    evidencia: *prueba
+  clima:
+    ecuacion: "a(t) = ρ a(t−1) + σ z − γ F(t)"
+    lee: [anomalia_clima, forzamiento_volcanico]
+    escribe: [anomalia_clima]
+    parametros: [clima_rho, clima_sigma, clima_gamma_volcan, clima_p_adversa]
+    fuentes: [clima_interno]
+    circuitos: {}
+    evidencia: *prueba
+  tecnologia:
+    ecuacion: "T' = (T + r T (1 − T/T_max) + δ (media_vecinos(T) − T)) · (1 + s · 1[invención]); P(invención) = p (0.5 + urb/urb_max)"
+    lee: [tecnologia, urbanizacion]
+    escribe: [tecnologia]
+    parametros: [tec_r, tec_max, tec_difusion, tec_p_inv, tec_salto, urb_max]
+    fuentes: [invencion]
+    circuitos: {positivos: ["tecnologia → urbanizacion → invencion → tecnologia"]}
+    estructura_no_ergodica: [refuerzo]
+    evidencia: *prueba
+  agricultura:
+    ecuacion: "tierra → min(tierra_max, P·h); rend = y0 T^ε clip(1 + β a) (1 − d·ocupación); prod = tierra · rend"
+    lee: [territorio, poblacion, tierra_cultivada, anomalia_clima, tecnologia, reservas]
+    escribe: [tierra_cultivada, rendimiento, produccion, reservas]
+    parametros: [frac_cultivable, ha_por_persona, agr_ajuste, agr_beta_clima, agr_clima_min, agr_clima_max, agr_y0,
+                 agr_tec_elast, agr_rend_decreciente]
+    fuentes: []
+    circuitos: {negativos: ["poblacion → ocupación → rendimiento → suficiencia → poblacion"]}
+    evidencia: *prueba
+  recaudacion:
+    ecuacion: "ingresos = min(tasa · capacidad · producción, reservas)"
+    lee: [tasa_fiscal, capacidad_fiscal, produccion, reservas, tesoro]
+    escribe: [ingresos_fiscales, reservas, tesoro]
+    parametros: []
+    fuentes: []
+    circuitos: {}
+    evidencia: *prueba
+  comercio:
+    ecuacion: "f_ab = ½ κ (r_a − r_b) min(P_a, P_b), acotado por com_cap · R / 4; r = reservas per cápita"
+    lee: [reservas, poblacion]
+    escribe: [exportaciones, importaciones, reservas]
+    parametros: [com_kappa, com_cap]
+    fuentes: []
+    circuitos: {}
+    evidencia: *prueba
+  consumo:
+    ecuacion: "consumo = min(P · c, φ R); mermas = m (R − consumo)"
+    lee: [poblacion, reservas]
+    escribe: [consumo, mermas, reservas, suficiencia_alimentaria, salario_real]
+    parametros: [cons_necesidad, cons_max_frac, merma]
+    fuentes: []
+    circuitos: {}
+    evidencia: *prueba
+  demografia:
+    ecuacion: "nac = P b (1 − h(1−s)) (1 + σ z1)+; m = P d (1 + σ z2)+; m_hambre = P k (1 − s)²"
+    lee: [poblacion, suficiencia_alimentaria]
+    escribe: [nacimientos, muertes_ordinarias, muertes_hambre, poblacion]
+    parametros: [dem_natalidad, dem_natal_hambre, dem_mortalidad, dem_sigma, dem_hambre]
+    fuentes: [vital]
+    circuitos: {negativos: ["poblacion → suficiencia → mortalidad → poblacion"]}
+    evidencia: *prueba
+  epidemia:
+    ecuacion: "P(brote) = p_ext + β Σ_vecinos m_epi; m_epi' = brote ? Pareto(x_m, α) (1 − inm) : δ m_epi"
+    lee: [epidemia_mortalidad, inmunidad, poblacion]
+    escribe: [epidemia_mortalidad, inmunidad, muertes_epidemia, poblacion]
+    parametros: [epi_p_ext, epi_p_contagio, epi_p_max, epi_xm, epi_alfa, epi_max, epi_decaimiento, inm_decaimiento, inm_ganancia]
+    fuentes: [epidemia]
+    circuitos: {negativos: ["epidemia → inmunidad → epidemia"]}
+    evidencia: *prueba
+  migracion:
+    ecuacion: "f_ab = μ (w_b − w_a)/(w_a + w_b) min(P_a, P_b), acotado; urb → urb_base + (urb_max − urb_base) σ(k (T − T0)) s"
+    lee: [poblacion, salario_real, tecnologia, suficiencia_alimentaria, urbanizacion]
+    escribe: [emigrantes, inmigrantes, poblacion, urbanizacion]
+    parametros: [mig_mu, mig_cap, urb_base, urb_max, urb_pendiente, urb_T0, urb_ajuste]
+    fuentes: []
+    circuitos: {}
+    evidencia: *prueba
+  gobernante:
+    ecuacion: "q = clip(1 − exp(−a f e^{b (edad − 20)})); si muere: sucesor (edad U, fragilidad lognormal, capacidad N(0,1)) y caída de legitimidad"
+    lee: [gobernante_edad, gobernante_fragilidad, gobernante_capacidad, gobernante_mandato, legitimidad]
+    escribe: [gobernante_edad, gobernante_fragilidad, gobernante_capacidad, gobernante_mandato, legitimidad, gobernante_murio]
+    parametros: [gob_gompertz_a, gob_gompertz_b, gob_q_min, gob_q_max, gob_edad_min, gob_edad_rango, gob_frag_sigma, gob_shock_sucesion]
+    fuentes: [muerte_gobernante, sucesion]
+    circuitos: {}
+    estructura_no_ergodica: [barrera_absorbente]
+    evidencia: *prueba
+  militar:
+    ecuacion: "objetivo = f P (1 + w amenaza); reclutas y licenciados ajustan hacia el objetivo con topes"
+    lee: [ejercito, poblacion]
+    escribe: [reclutas, licenciados, ejercito]
+    parametros: [mil_frac, mil_ajuste, mil_reclut_max, mil_amenaza_max, mil_amenaza_peso, mil_tope]
+    fuentes: []
+    circuitos: {positivos: ["ejército_a → amenaza_b → ejército_b → amenaza_a → ejército_a"]}
+    evidencia: *prueba
+  guerra:
+    ecuacion: "P(guerra) = p0 (1 + k (ψ_a + ψ_b)); P(gana a) = S_a²/(S_a² + S_b²) acotada; bajas L ~ Pareto truncada; cesión θ L territorio"
+    lee: [ejercito, poblacion, territorio, legitimidad, inestabilidad, gobernante_capacidad]
+    escribe: [bajas_militares, muertes_guerra, territorio_ganado, territorio_perdido, guerras_libradas, ejercito,
+              poblacion, territorio, legitimidad]
+    parametros: [gue_p0, gue_inest, gue_p_max, gue_peso_gob, gue_sorpresa_min, gue_xm, gue_alfa, gue_max,
+                 gue_bajas_ganador, gue_civiles, gue_territorio, gue_legit_victoria, gue_legit_derrota]
+    fuentes: [guerra, batalla, batalla_magnitud]
+    circuitos: {positivos: ["territorio → producción → ingresos → ejército → victoria → territorio"]}
+    estructura_no_ergodica: [refuerzo]
+    evidencia: *prueba
+  fiscal:
+    ecuacion: "pagos en orden intereses, soldada, gasto civil desde caja + préstamo acotado; amortización del excedente; impago si no se pagan intereses o la deuda excede el límite"
+    lee: [ingresos_fiscales, deuda, tesoro, ejercito, tasa_fiscal, capacidad_fiscal, gobernante_capacidad, legitimidad]
+    escribe: [tasa_fiscal, capacidad_fiscal, legitimidad, intereses, gasto_militar, gasto_civil, prestamos,
+              amortizacion, impago, tesoro, deuda]
+    parametros: [fis_interes, mil_soldada, fis_gasto_civil, fis_lim_deuda, fis_frac_amort, fis_reserva, fis_lim_impago,
+                 fis_frac_impago, fis_tasa_paso, fis_tasa_max, fis_tasa_relaj, fis_tasa_base, fis_cap_aprendizaje,
+                 fis_cap_gob, fis_cap_shock, fis_shock_impago]
+    fuentes: []
+    circuitos: {positivos: ["deuda → intereses → préstamo → deuda"]}
+    evidencia: *prueba
+  elites_crisis:
+    ecuacion: "ψ → σ(k (w_e sobreproducción + w_f estrés fiscal + w_h hambre + w_l (1 − L) − u)); P(revuelta) = clip(r0 ψ²); tamaño Pareto truncado"
+    lee: [poblacion, elites, legitimidad, deuda, ingresos_fiscales, suficiencia_alimentaria, inestabilidad,
+          gobernante_capacidad, capacidad_fiscal]
+    escribe: [revuelta_magnitud, inestabilidad, legitimidad, capacidad_fiscal, entrada_elites, salida_elites, elites]
+    parametros: [el_ratio_ref, fis_lim_deuda, cri_pendiente, cri_w_elite, cri_w_fiscal, cri_w_hambre, cri_w_legit,
+                 cri_umbral, cri_ajuste, cri_r0, cri_q_min, cri_q_max, cri_xm, cri_alfa, cri_alivio, cri_legit_rev,
+                 leg_ajuste, leg_base, leg_gob, cri_cap_rev, el_crecimiento, el_ratio_max, el_mortalidad, el_purga, el_tope]
+    fuentes: [revuelta]
+    circuitos: {positivos: ["inestabilidad → revuelta → legitimidad ↓ → inestabilidad"]}
+    estructura_no_ergodica: [metaestabilidad]
+    evidencia: *prueba

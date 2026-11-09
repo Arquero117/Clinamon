@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "clinamen"
+version = "0.1.0"
+description = "Motor de historia contrafactual cuantitativa (fase F0: cimientos)"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Privado" }
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pydantic>=2.5",
+    "pyyaml>=6",
+    "pyarrow>=14",
+]
+
+[project.optional-dependencies]
+rapido = ["numba>=0.58"]
+pruebas = ["pytest>=7", "randomgen>=1.26"]
+
+[project.scripts]
+clinamen = "clinamen.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+clinamen = ["mundos/*/*.yaml"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+markers = [
+    "lento: pruebas estadísticas o de rendimiento (segundos a un minuto)",
+]
