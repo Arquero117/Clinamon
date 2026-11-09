@@ -1,0 +1,66 @@
+# Prerregistro de la puerta de la fase F0 (Cimientos).
+# Manual §17.1 y §17.2: los umbrales numéricos se congelan ANTES de empezar la fase.
+# Este fichero no se edita después de su primer commit. Su sha256 está en F0_puerta.sha256.
+# Si una iteración no supera la puerta, se simplifica el modelo; la puerta no se relaja.
+
+fase: F0
+nombre: Cimientos
+modulos: [M1, M5, M7]
+fecha_congelacion: "2026-11-09"
+
+puerta:
+  determinismo:
+    descripcion: >
+      Misma semilla y misma configuración producen salidas idénticas bit a bit
+      (comparación por igualdad exacta de arrays float64 y por sha256 de los Parquet).
+    criterios:
+      repeticion_identica: true          # dos ejecuciones completas -> mismos bits
+      invariancia_tamano_bloque: true    # la trayectoria de la partícula p no depende del tamaño de bloque
+      invariancia_procesos: true         # ni del número de procesos en paralelo
+      reanudacion_identica: true         # una ejecución interrumpida y reanudada = una ininterrumpida
+      brazo_base_igual_ensemble: true    # el brazo sin POD de los gemelos = ensemble sin gemelos
+
+  pod_nulo:
+    descripcion: >
+      Un POD nulo produce efecto exactamente cero, bit a bit, sobre todas las variables
+      de estado, en todos los pasos y en todas las partículas.
+    max_abs_diferencia: 0.0
+    variantes:
+      - nulo                    # K' = K sin tocar ningún sorteo
+      - inclinacion_cero        # inclinación gaussiana con desplazamiento 0 (atraviesa el código de intervención)
+      - suceso_intervalo_total  # suceso cuyo intervalo es todo (0,1): coste 0
+    acoplamientos: [fisico, maximo, independiente]
+
+  identidades:
+    descripcion: >
+      Todas las identidades contables declaradas en la ontología se cumplen en el 100 % de
+      los pasos, para todas las partículas y ambos brazos. Residuo relativo a la suma de
+      valores absolutos de los términos.
+    fraccion_pasos_superados: 1.0
+    tolerancia_relativa_float64: 1.0e-10
+    rangos_fraccion_superada: 1.0      # toda variable dentro de su rango declarado en todo paso
+
+  rendimiento:
+    descripcion: >
+      Microsegundos por trayectoria-año y por núcleo, medidos en un solo proceso tras
+      calentamiento, en el mundo de banco F0, con gemelos y verificación de identidades activadas.
+    objetivo_us_por_trayectoria_anio: 20
+    factor_maximo: 10
+    umbral_us_por_trayectoria_anio: 200
+    configuracion_minima:
+      entidades: 30
+      variables_por_entidad: 40
+      mecanismos: 15
+
+  ensayo:
+    semillas: [20261109, 7]
+    particulas: 64
+    anios: 120
+    paso_pod: 30
+    particulas_rendimiento: 512
+    anios_rendimiento: 40
+    anios_calentamiento_rendimiento: 5
+
+notas:
+  - "Λ ≤ 1 y la estimación del rastro son puerta de F1 (§17.1); en F0 solo se verifica la coherencia del coste."
+  - "El mundo de banco F0 es un mundo de prueba sin pretensión histórica: todos sus parámetros tienen procedencia 'supuesto'."
