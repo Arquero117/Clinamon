@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import json
 import multiprocessing
+import os
 import platform
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -27,6 +28,12 @@ from ..validacion.sintetico import ConfigExperimento, experimento, resumir
 RAIZ = Path(__file__).resolve().parents[3]
 TAMANOS_JUGUETES = {"n_ajuste": 60000, "n_prueba": 40000, "n_pod": 200000, "nodos": (12, 32),
                     "lotes_t2": 16, "n_lote_t2": 10000}
+
+
+def _un_hilo():
+    """Un hilo de BLAS por proceso trabajador: con varios procesos, el multihilo de BLAS sobresuscribe los núcleos."""
+    for v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMBA_NUM_THREADS"):
+        os.environ.setdefault(v, "1")
 
 
 def _prerregistro():
@@ -85,6 +92,7 @@ def evaluar_puerta_f1(salida: str | Path = RAIZ / "informes" / "F1", procesos: i
             raise RuntimeError(f"duración estimada {est / 3600:.1f} h supera el máximo de {max_horas} h")
     t_ini = time.perf_counter()
     cpu = 0.0
+    _un_hilo()
     with ProcessPoolExecutor(max_workers=procesos, mp_context=multiprocessing.get_context("spawn")) as ex:
         fut = {ex.submit(_tarea_cronometrada, *t): t for t in pendientes}
         for i, f in enumerate(as_completed(fut), 1):

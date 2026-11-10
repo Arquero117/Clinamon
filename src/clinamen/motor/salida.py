@@ -36,6 +36,12 @@ from ..mundos import obtener_modelo
 from .motor import ConfigSimulacion, Resultado, simular
 
 
+def _un_hilo():
+    """Un hilo de BLAS por proceso trabajador: con varios procesos, el multihilo de BLAS sobresuscribe los núcleos."""
+    for v in ("OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMBA_NUM_THREADS"):
+        os.environ.setdefault(v, "1")
+
+
 def _sha256_fichero(ruta: Path) -> str:
     h = hashlib.sha256()
     with open(ruta, "rb") as f:
@@ -252,7 +258,8 @@ def ejecutar_ensemble(cfg: ConfigEnsemble, salida: str | Path, procesos: int = 1
         for i, p0, n in pendientes:
             registrar(i, _ejecutar_bloque(cfg, str(salida), i, p0, n))
     else:
-        with ProcessPoolExecutor(max_workers=procesos, mp_context=multiprocessing.get_context("spawn")) as ex:
+        _un_hilo()
+    with ProcessPoolExecutor(max_workers=procesos, mp_context=multiprocessing.get_context("spawn")) as ex:
             futuros = {ex.submit(_ejecutar_bloque, cfg, str(salida), i, p0, n): i for i, p0, n in pendientes}
             for fut in as_completed(futuros):
                 registrar(futuros[fut], fut.result())
