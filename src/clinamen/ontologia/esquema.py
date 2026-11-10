@@ -251,10 +251,22 @@ class Observacion(_Base):
     nombre: str
     variable: str
     entidades: tuple[int, ...]
-    familia: Literal["normal", "lognormal"]
-    sd: str
+    familia: Literal["normal", "lognormal", "suceso"]
+    sd: Optional[str] = None
+    fuente: Optional[str] = None          # familia 'suceso': fuente cuyo suceso se registra
+    evento_si: Optional[str] = None       # suceso si la variable indicadora vale 1
+    evento_no: Optional[str] = None       # suceso si vale 0
     fraccion_huecos: float = Field(0.0, ge=0.0, lt=1.0)
     descripcion: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def _familia(self):
+        if self.familia == "suceso":
+            if not (self.fuente and self.evento_si and self.evento_no):
+                raise ValueError(f"observación {self.nombre}: 'suceso' requiere fuente, evento_si y evento_no")
+        elif self.sd is None:
+            raise ValueError(f"observación {self.nombre}: falta el parámetro de error sd")
+        return self
 
 
 class Ontologia(_Base):
@@ -312,8 +324,12 @@ class Ontologia(_Base):
         for ob in self.observaciones:
             if ob.variable not in V:
                 errores.append(f"observación {ob.nombre}: variable desconocida {ob.variable}")
-            if ob.sd not in P:
+            if ob.sd is not None and ob.sd not in P:
                 errores.append(f"observación {ob.nombre}: parámetro de error desconocido {ob.sd}")
+            if ob.familia == "suceso":
+                ev = {e.nombre for e in F[ob.fuente].eventos} if ob.fuente in F else set()
+                if not {ob.evento_si, ob.evento_no} <= ev:
+                    errores.append(f"observación {ob.nombre}: sucesos no declarados en la fuente {ob.fuente}")
             if any(not (0 <= e < self.topologia.entidades) for e in ob.entidades):
                 errores.append(f"observación {ob.nombre}: entidad fuera de rango")
 
@@ -341,7 +357,7 @@ class Ontologia(_Base):
             if v.tipo != "flujo" and v.nombre not in self.estado_inicial.escribe:
                 errores.append(f"estado inicial no inicializa {v.nombre}")
 
-        usados_p = set().union(*(m.parametros for m in fichas)) | {ob.sd for ob in self.observaciones}
+        usados_p = set().union(*(m.parametros for m in fichas)) | {ob.sd for ob in self.observaciones if ob.sd}
         for p in P:
             if p not in usados_p:
                 errores.append(f"parámetro {p} huérfano")

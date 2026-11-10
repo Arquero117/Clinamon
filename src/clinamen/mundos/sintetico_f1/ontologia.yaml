@@ -10,7 +10,8 @@ descripcion: >
   Seis entidades en dos componentes (0–1–2 y 3–4–5). Cada una tiene una capacidad con dos regímenes
   metaestables (doble pozo) empujada por ruido gaussiano, por el rasgo de su gobernante y por sus vecinos; la
   muerte del gobernante da un choque de sucesión. La población crece según la capacidad y se observa con error
-  lognormal y huecos.
+  observan solo dos fuentes, como en la historia real: una codificación experta ruidosa de la capacidad, con
+  huecos, y la crónica completa de sucesiones. La población no se observa.
 advertencia: "Mundo sintético F1: sin contenido histórico; sirve para validar asimilación, gemelos y cobertura."
 
 topologia: {tipo: lista, entidades: 6, aristas: [[0, 1], [1, 2], [3, 4], [4, 5]]}
@@ -45,10 +46,10 @@ parametros:
   sf_q_max:       {<<: *sup, valor: 0.9,   unidad: probabilidad, prior: {familia: degenerado, rango: [0.9, 0.9]}}
   sf_edad_min:    {<<: *sup, valor: 18.0,  unidad: años, prior: {familia: degenerado, rango: [18, 18]}}
   sf_edad_rango:  {<<: *sup, valor: 30.0,  unidad: años, prior: {familia: degenerado, rango: [30, 30]}}
-  sf_obs_sd:      {<<: *sup, valor: 0.03,  unidad: log, prior: {familia: degenerado, rango: [0.03, 0.03]}, descripcion: "error lognormal de los recuentos de población"}
+  sf_obs_cap_sd:  {<<: *sup, valor: 0.8,   unidad: índice, prior: {familia: degenerado, rango: [0.8, 0.8]}, descripcion: "error de la codificación experta de la capacidad"}
   sf_ini_cap_sd:  {<<: *sup, valor: 0.3,   unidad: índice, prior: {familia: degenerado, rango: [0.3, 0.3]}}
-  sf_ini_pob_min: {<<: *sup, valor: 5.0e5, unidad: personas, prior: {familia: degenerado, rango: [5.0e5, 5.0e5]}}
-  sf_ini_pob_max: {<<: *sup, valor: 2.0e6, unidad: personas, prior: {familia: degenerado, rango: [2.0e6, 2.0e6]}}
+  sf_ini_pob_min: {<<: *sup, valor: 9.0e5, unidad: personas, prior: {familia: degenerado, rango: [9.0e5, 9.0e5]}}
+  sf_ini_pob_max: {<<: *sup, valor: 1.1e6, unidad: personas, prior: {familia: degenerado, rango: [1.1e6, 1.1e6]}}
   sf_ini_edad_min: {<<: *sup, valor: 20.0, unidad: años, prior: {familia: degenerado, rango: [20, 20]}}
   sf_ini_edad_max: {<<: *sup, valor: 60.0, unidad: años, prior: {familia: degenerado, rango: [60, 60]}}
 
@@ -101,13 +102,22 @@ observables:
   sucesiones:       {variable: gobernante_murio, reduccion: suma, unidad: gobernantes/año, descripcion: Sucesiones}
 
 observaciones:
-  censo:
-    variable: poblacion
+  codificacion:
+    variable: capacidad
     entidades: [0, 1, 2, 3, 4, 5]
-    familia: lognormal
-    sd: sf_obs_sd
-    fraccion_huecos: 0.5
-    descripcion: "Recuentos de población con error lognormal; la mitad de los años-entidad faltan."
+    familia: normal
+    sd: sf_obs_cap_sd
+    fraccion_huecos: 0.6
+    descripcion: "Codificación experta ruidosa de la capacidad (§3.1); falta el 60 % de los años-entidad."
+  cronica_sucesiones:
+    variable: gobernante_murio
+    entidades: [0, 1, 2, 3, 4, 5]
+    familia: suceso
+    fuente: muerte_gobernante
+    evento_si: muere
+    evento_no: sobrevive
+    fraccion_huecos: 0.0
+    descripcion: "Crónica completa de muertes de gobernantes (§16, paso 4)."
 
 x-ev: &ev
   referencias: ["ninguna: mecanismo sintético de F1"]

@@ -117,6 +117,21 @@ class CampoAzar:
                 self._registrar_pod(pod, j)
         self.t = None
         self._sorteadas: set[str] = set()
+        self.condiciones: list = []                       # (fuente, evento, indice, mascara_columnas)
+        self.log_peso_condiciones = np.zeros(self.B)      # Σ log K(A) de los sucesos condicionados
+
+    def condicionar(self, condiciones: list) -> None:
+        """Sucesos observados para el paso que empieza: lista de (fuente, evento, índice, columnas booleanas (B,)).
+
+        Cada suceso se fuerza con la propuesta óptima K(·|A) (acoplamiento máximo, sorteos frescos del flujo 254)
+        y su probabilidad K(A) se acumula en ``log_peso_condiciones``: es la verosimilitud exacta de observar el
+        suceso, que el filtro de partículas suma a los pesos (§11.1).
+        """
+        for fuente, evento, indice, cols in condiciones:
+            f = self.fuentes[fuente]
+            if evento not in {e.nombre for e in f.eventos}:
+                raise ValueError(f"suceso {evento} no declarado en {fuente}")
+        self.condiciones = list(condiciones)
 
     @property
     def t_div(self):
@@ -231,7 +246,27 @@ class CampoAzar:
             if pod.tipo == "suceso" and pod.fuente == fuente and pod.paso == self.t:
                 lo, hi = eventos[pod.evento]
                 self._forzar_suceso(pod, u, lo, hi)
+        for fu, ev, indice, cols in self.condiciones:
+            if fu == fuente:
+                self._condicionar_suceso(f, ev, indice, np.asarray(cols, bool), u, eventos[ev])
         return u
+
+    def _condicionar_suceso(self, f, evento, indice, cols, u, intervalo):
+        ranura = {e.nombre: e for e in f.eventos}[evento].ranura
+        forma = (self.tam[f.dominio], self.B)
+        lo = np.broadcast_to(np.asarray(intervalo[0], np.float64), forma)[indice]
+        hi = np.broadcast_to(np.asarray(intervalo[1], np.float64), forma)[indice]
+        masa = hi - lo
+        if np.any(cols & ~(masa > 0.0)):
+            # el suceso observado es imposible en esas columnas: verosimilitud cero
+            self.log_peso_condiciones[cols & ~(masa > 0.0)] = -np.inf
+        v = self._brutas(f.nombre, ranura + 1, np.uint32(254), self.c2, indices=[indice])[ranura][0]
+        fila = u[ranura][indice]
+        dentro = (fila >= lo) & (fila < hi)
+        nuevo = np.minimum(np.maximum(lo + masa * v, lo), np.nextafter(hi, -np.inf))
+        fila[:] = np.where(cols & ~dentro, nuevo, fila)
+        ok = cols & (masa > 0.0)
+        self.log_peso_condiciones[ok] += np.log(masa[ok])
 
     def normales(self, fuente: str, eventos: dict | None = None) -> list[np.ndarray]:
         """Normales estándar por cuantil inverso de las uniformes (los sucesos se dan en el espacio u)."""

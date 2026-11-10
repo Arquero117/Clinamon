@@ -70,11 +70,21 @@ Lecciones (ya incorporadas al código):
   ~0 a 24 años (transitorio). POD en la entidad 4 → nulo en ley sobre capacidad_0 (comprobado).
 - Rendimiento: ~0.8 µs por trayectoria-año.
 
+## P7 en curso (asimilación) — estado a la última actualización
+
+- `src/clinamen/asimilacion/filtro.py`: `observar`, `log_verosimilitud`, `condiciones_de`, `filtro_particulas`
+  (bloques M×K, remuestreo sistemático por bloque, log p̂(y|θ)), `Prior` uniforme, `posterior_adaptativa`
+  (3 etapas, t de Student + 10 % de prior), `Posterior.muestras_conjuntas(S, rng)` → (θ, estado en el último paso).
+- `CampoAzar.condicionar(...)`: sucesos observados (crónica) con propuesta óptima K(·|A); su log K(A) se suma al
+  peso de la partícula (`log_peso_condiciones`). Observación de familia `suceso` en el esquema.
+- Diagnóstico: sd de log p̂ con θ fijo. Censo de población (integrador sin ruido) → degeneración (sd ~10 nats).
+  DECISIÓN: el mundo sintético observa solo codificación de capacidad (normal, sd 0.8, 60 % huecos) y crónica
+  de sucesiones completa; la población no se observa. Con K = 256: sd log p̂ ≈ 2 (sin censo, sd 1.0, 70 %).
+- Pendiente de P7: test de la asimilación y medir ESS; elegir T_obs (30–40), M, K.
+
 ## Siguiente paso concreto
 
-P7: `clinamen/asimilacion/` (M6): filtro de partículas bootstrap sobre `motor.Simulacion` con columnas
-= M valores de θ × K partículas (parámetros por columna), verosimilitud lognormal de `observaciones` con huecos,
-remuestreo por θ (dentro de cada bloque de K columnas), log-verosimilitud marginal por θ; muestreo por
-importancia adaptativo en 3 etapas sobre θ (prior → mezcla t ajustada + 10 % de prior); muestras conjuntas
-(θ, x_t0) de la posterior de filtrado. Diseño del experimento: historia de 40 años (pasos 0–39), POD en el paso
-40, Y = capacidad_0 tras el paso 49 (H = 10).
+Terminar P7 y pasar a P8: `clinamen/validacion/sintetico.py` con un experimento por mundo: verdad (θ del prior,
+historia 0..T_obs−1, observar), posterior, S muestras (θ, x_t0), gemelos con R réplicas por muestra desde
+paso0 = T_obs con ramas = candidatos, efecto verdadero con muchas réplicas desde el estado verdadero, intervalo
+90 % = cuantiles 5–95 % de los efectos por muestra; cobertura con muchos mundos (procesos en paralelo).
