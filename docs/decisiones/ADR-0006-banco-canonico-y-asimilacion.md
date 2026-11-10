@@ -25,6 +25,16 @@ coincide con el del sistema completo con error < 0.006.
   fuentes de error.
 - **Rastro**: cota de Donsker-Varadhan con el log-cociente ajustado en una mitad y evaluado en la otra.
 
+### 2.1 Committor de la puerta: estimador saturado (iteración 3)
+
+La puerta F1 falló dos veces en el criterio del committor con la regresión logística por B-splines (12 nodos,
+luego 12/32 por validación cruzada). Causa raíz: tamaños de Monte Carlo que incumplían la regla prerregistrada
+(error típico ≤ 1/5 del umbral) y un error típico de modelo que no recoge el sesgo de suavizado. Tras dos
+iteraciones, §17.2 manda simplificar el modelo: el criterio usa ahora el estimador **saturado** (frecuencia de B
+por estado e instante, error típico binomial), acumulado por tramos con 16 millones de trayectorias por juguete.
+La regresión con B-splines sigue siendo el estimador para los Teoremas 2 y 3 (validados) y para estados
+continuos, donde el saturado exige discretizar; en el motor completo habrá que validarla de nuevo (F2).
+
 ## 3. Asimilación (M6)
 
 - Filtro de partículas bootstrap sobre el propio motor: columnas = M valores de θ × K partículas, remuestreo

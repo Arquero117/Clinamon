@@ -19,7 +19,7 @@
 - [x] P6. Mundo sintético `sintetico_f1` (ontología + mecanismos).
 - [x] P7. M6 asimilación: filtro de partículas bootstrap + muestreo por importancia adaptativo pseudo-marginal.
 - [x] P8. M10: degradación, efecto verdadero, intervalos, cobertura, ranking de candidatos, BH.
-- [ ] P9. `clinamen puerta-f1`: evaluación con semillas de puerta; informe; docs; commit; push.
+- [x] P9. `clinamen puerta-f1`: evaluación con semillas de puerta; informe; docs; commit; push.
 
 ## Decisiones tomadas (resumen; detalle en ADR-0006 cuando exista)
 
@@ -108,8 +108,10 @@ Iteración 2 EN EJECUCIÓN: `clinamen puerta-f1` (rehace solo los juguetes; part
 robustez con 910011/910021 (log en el scratchpad; si se pierde, relanzar
 `python <script it2> <5 juguetes> 910011,910021`, script = clinamen.puerta.f1._tarea('juguete', k, s)).
 
+## Cierre
+
+Puerta superada en la iteración 3 (commit cef68b2). Ver `docs/fases/F1.md`.
+
 ## Siguiente paso concreto
 
-Tras la iteración 2: leer `informes/F1/puerta_F1.md`. Si SUPERADA: escribir `docs/fases/F1.md` (resumen como F0.md), actualizar
-README y CLAUDE.md (F1 completada; F2 siguiente, congelar su puerta antes de empezar), commit + push.
-Si NO SUPERADA: NO tocar umbrales; diagnosticar, documentar, simplificar el modelo (máx. 2 iteraciones, §17.2).
+F1 cerrada. Siguiente fase: F2 (ver CLAUDE.md §2).

@@ -9,8 +9,8 @@ Motor de **historia contrafactual cuantitativa**: calcula, con incertidumbre exp
 | Fase | Contenido | Estado |
 | --- | --- | --- |
 | **F0 Cimientos** | Ontología (M1), motor vectorizado (M5), generador por contador, gemelos (M7), salida Parquet | **Puerta superada**: véase [informe](informes/F0/puerta_F0.md) y [resumen de fase](docs/fases/F0.md) |
-| F1 Banco canónico y mundo sintético | Juguetes con solución exacta, committor, presupuesto, ruta, espectro, asimilación | Por empezar: primero se congelan sus umbrales |
-| F2–F5 | Mecanismos e hindcast, validez interventiva, caso piloto, generalización | — |
+| **F1 Banco canónico y mundo sintético** | Juguetes exactos, committor, presupuesto, ruta, espectro, asimilación, mundo sintético | **Puerta superada** (iteración 3): [informe](informes/F1/puerta_F1.md), [resumen](docs/fases/F1.md) |
+| F2–F5 | Mecanismos e hindcast, validez interventiva, caso piloto, generalización | Siguiente: F2 |
 
 **Lo que hay hoy no dice nada sobre la historia.** El único mundo disponible, `banco_f0`, es un mundo de prueba de ingeniería con parámetros supuestos (ADR-0005).
 
@@ -52,7 +52,13 @@ Evaluar la puerta F0 en tu máquina (un minuto en un núcleo; mide el rendimient
 clinamen puerta-f0 --salida informes/F0_mi_equipo
 ```
 
-Pruebas (unos 15 s):
+Evaluar la puerta F1 (reanudable; unos 20–25 min con 4 procesos, 0.27 h con 8 núcleos):
+
+```bash
+clinamen puerta-f1 --procesos 8 --salida informes/F1_mi_equipo
+```
+
+Pruebas (alrededor de un minuto):
 
 ```bash
 python -m pytest

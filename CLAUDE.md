@@ -11,7 +11,7 @@ Antes de escribir una sola línea de código, en este orden:
 2. **El manual no se toca.** No se edita, no se resume, no se recorta, no se reformatea, no se sustituye por una
    versión abreviada. Su sha256 está en `prerregistro/manual.sha256` y `tests/test_integridad_manual.py` lo
    comprueba. Si alguna vez falla, restáuralo con `git checkout <commit> -- docs/manual/manual_clinamen.md`.
-3. Lee el fichero de progreso de la fase en curso (`docs/fases/F1_progreso.md`): estado, decisiones tomadas,
+3. Lee el fichero de progreso de la fase en curso (`docs/fases/F<n>_progreso.md`): estado, decisiones tomadas,
    siguiente paso concreto. Es la memoria de trabajo del proyecto; **actualízalo y haz commit después de cada
    paso terminado**, antes de seguir.
 4. Lee las ADR de `docs/decisiones/` que afecten a lo que vas a tocar.
@@ -36,9 +36,11 @@ Responde en español. Prefiere lo pequeño y verificable a lo grande y vistoso.
 ## 2. Estado del proyecto
 
 - **F0 Cimientos:** completada; puerta superada (`informes/F0/puerta_F0.md`, `docs/fases/F0.md`).
-- **F1 Banco canónico y mundo sintético:** EN CURSO. Puerta congelada en `prerregistro/F1_puerta.yaml`
-  (sha256 en `prerregistro/F1_puerta.sha256`; la persona aprobó los umbrales). Progreso y siguiente paso:
-  `docs/fases/F1_progreso.md`.
+- **F1 Banco canónico y mundo sintético:** completada; puerta superada en la iteración 3
+  (`informes/F1/puerta_F1.md`, `docs/fases/F1.md`, historial en `docs/fases/F1_progreso.md`).
+- **F2 Mecanismos y hindcast:** SIGUIENTE. Antes de escribir código: proponer sus umbrales numéricos a la persona,
+  congelarlos en `prerregistro/F2_puerta.yaml` + sha256 y crear `docs/fases/F2_progreso.md` (plan, decisiones,
+  siguiente paso). F2 necesita datos reales (§16 paso 4, M2 ingesta): pide a la persona qué fuentes puede aportar.
 - La puerta no se mueve (§17.2). Si F1 no la supera tras dos iteraciones, se simplifica el modelo.
 - Las **semillas de puerta** del prerregistro no se usan nunca durante el desarrollo: solo en la evaluación final.
 

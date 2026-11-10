@@ -1,8 +1,332 @@
 {
+  "robustez_committor": [
+    {
+      "juguete": "doble_pozo_gaussiano",
+      "semilla": 910011,
+      "instantes": [
+        {
+          "t": 30,
+          "n_estados": 62,
+          "error_max": 0.005747284968184552,
+          "error_tipico_max": 0.0017162994080419088,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 45,
+          "n_estados": 67,
+          "error_max": 0.005114177804084852,
+          "error_tipico_max": 0.0015950961510015312,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 54,
+          "n_estados": 69,
+          "error_max": 0.0031589018642724787,
+          "error_tipico_max": 0.0015624475328688075,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        }
+      ],
+      "supera": true,
+      "_segundos": 117.13702522699896
+    },
+    {
+      "juguete": "doble_pozo_gaussiano",
+      "semilla": 910021,
+      "instantes": [
+        {
+          "t": 30,
+          "n_estados": 62,
+          "error_max": 0.0037096029320126123,
+          "error_tipico_max": 0.0017057682324395098,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 45,
+          "n_estados": 67,
+          "error_max": 0.0029671791397032354,
+          "error_tipico_max": 0.0015938501398683558,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 54,
+          "n_estados": 69,
+          "error_max": 0.0028987493813791287,
+          "error_tipico_max": 0.0015600418853937174,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        }
+      ],
+      "supera": true,
+      "_segundos": 117.9591635630004
+    },
+    {
+      "juguete": "doble_pozo_estable",
+      "semilla": 910011,
+      "instantes": [
+        {
+          "t": 30,
+          "n_estados": 23,
+          "error_max": 0.0013756875556032444,
+          "error_tipico_max": 0.0011209474083174581,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 45,
+          "n_estados": 30,
+          "error_max": 0.005716621183837534,
+          "error_tipico_max": 0.002948628358895739,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 54,
+          "n_estados": 39,
+          "error_max": 0.008895795542834595,
+          "error_tipico_max": 0.003978603886864212,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        }
+      ],
+      "supera": true,
+      "_segundos": 116.74808186200062
+    },
+    {
+      "juguete": "doble_pozo_estable",
+      "semilla": 910021,
+      "instantes": [
+        {
+          "t": 30,
+          "n_estados": 23,
+          "error_max": 0.0017264118870551348,
+          "error_tipico_max": 0.0011222673391510034,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 45,
+          "n_estados": 30,
+          "error_max": 0.009369996901319677,
+          "error_tipico_max": 0.0029519792577284024,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 54,
+          "n_estados": 39,
+          "error_max": 0.007362318636719378,
+          "error_tipico_max": 0.004002767196418674,
+          "regla_tamano_cumplida": false,
+          "supera": true
+        }
+      ],
+      "supera": true,
+      "_segundos": 116.90438103199995
+    },
+    {
+      "juguete": "urna_polya",
+      "semilla": 910011,
+      "instantes": [
+        {
+          "t": 40,
+          "n_estados": 37,
+          "error_max": 0.0011084547982628257,
+          "error_tipico_max": 0.0007963934773055759,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 60,
+          "n_estados": 55,
+          "error_max": 0.0014870497837126129,
+          "error_tipico_max": 0.0009623571642017433,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 72,
+          "n_estados": 67,
+          "error_max": 0.0010756441609441891,
+          "error_tipico_max": 0.00103000386710718,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        }
+      ],
+      "supera": true,
+      "_segundos": 94.57758592400023
+    },
+    {
+      "juguete": "urna_polya",
+      "semilla": 910021,
+      "instantes": [
+        {
+          "t": 40,
+          "n_estados": 37,
+          "error_max": 0.0011868910225743545,
+          "error_tipico_max": 0.0007975229519601863,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 60,
+          "n_estados": 55,
+          "error_max": 0.0008979033752738452,
+          "error_tipico_max": 0.0009649576741165833,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 72,
+          "n_estados": 67,
+          "error_max": 0.001435915262661347,
+          "error_tipico_max": 0.001030728159974968,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        }
+      ],
+      "supera": true,
+      "_segundos": 96.32903564099979
+    },
+    {
+      "juguete": "lento_rapido",
+      "semilla": 910011,
+      "instantes": [
+        {
+          "t": 75,
+          "n_estados": 84,
+          "error_max": 0.003720551134220984,
+          "error_tipico_max": 0.0033724768810943903,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 112,
+          "n_estados": 103,
+          "error_max": 0.005133335968703134,
+          "error_tipico_max": 0.0033174323316856272,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 135,
+          "n_estados": 115,
+          "error_max": 0.005837117630519972,
+          "error_tipico_max": 0.00300899696580494,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        }
+      ],
+      "supera": true,
+      "_segundos": 226.8429438050007
+    },
+    {
+      "juguete": "lento_rapido",
+      "semilla": 910021,
+      "instantes": [
+        {
+          "t": 75,
+          "n_estados": 84,
+          "error_max": 0.004134909100545148,
+          "error_tipico_max": 0.0033724641879987576,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 112,
+          "n_estados": 103,
+          "error_max": 0.0048975033105254084,
+          "error_tipico_max": 0.003312063956876812,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 135,
+          "n_estados": 115,
+          "error_max": 0.005731775492399338,
+          "error_tipico_max": 0.00301183468116248,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        }
+      ],
+      "supera": true,
+      "_segundos": 225.36351217599986
+    },
+    {
+      "juguete": "doble_pozo_deriva",
+      "semilla": 910011,
+      "instantes": [
+        {
+          "t": 40,
+          "n_estados": 31,
+          "error_max": 0.0026403350881475385,
+          "error_tipico_max": 0.0012625800396893845,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 60,
+          "n_estados": 58,
+          "error_max": 0.0018971358338716326,
+          "error_tipico_max": 0.0009408104647529251,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 72,
+          "n_estados": 61,
+          "error_max": 0.0021993872592733776,
+          "error_tipico_max": 0.001023235369110228,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        }
+      ],
+      "supera": true,
+      "_segundos": 149.87960047399974
+    },
+    {
+      "juguete": "doble_pozo_deriva",
+      "semilla": 910021,
+      "instantes": [
+        {
+          "t": 40,
+          "n_estados": 31,
+          "error_max": 0.0028732356170561024,
+          "error_tipico_max": 0.00126628317598726,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 60,
+          "n_estados": 58,
+          "error_max": 0.001779361824429282,
+          "error_tipico_max": 0.0009399288718636479,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        },
+        {
+          "t": 72,
+          "n_estados": 61,
+          "error_max": 0.0016606120914099964,
+          "error_tipico_max": 0.0010234011726127136,
+          "regla_tamano_cumplida": true,
+          "supera": true
+        }
+      ],
+      "supera": true,
+      "_segundos": 149.9351942560006
+    }
+  ],
+  "supera_robustez": true,
+  "regla_tamano_committor_cumplida": true,
   "fase": "F1",
   "prerregistro_sha256": "7f9e9e3fcccb3f028b6226951c37c3507aa0d717c558fe5c01a74e102d48cafc",
   "version": "0.1.0",
-  "commit": "8b46f42da2a69c35c8f492d50b8dbad53bb2beb4",
+  "commit": "cef68b29e37c9132c8098d7d640659ced26ba296",
   "entorno": {
     "python": "3.13.18",
     "maquina": "x86_64",
@@ -17,7 +341,8 @@
       32
     ],
     "lotes_t2": 16,
-    "n_lote_t2": 10000
+    "n_lote_t2": 10000,
+    "n_committor": 16000000
   },
   "config_mundos": {
     "mundo": "sintetico_f1",
@@ -133,30 +458,35 @@
       ],
       "P_B_exacta": 0.28365362420424656,
       "committor": {
+        "estimador": "saturado (frecuencia por estado)",
+        "n_trayectorias": 16000000,
         "instantes": [
           {
             "t": 30,
             "n_estados": 62,
-            "error_max": 0.034139053793654006,
-            "error_tipico_max": 0.011969243610946702,
-            "supera": false
+            "error_max": 0.0045792020497036345,
+            "error_tipico_max": 0.001718422992315387,
+            "regla_tamano_cumplida": true,
+            "supera": true
           },
           {
             "t": 45,
             "n_estados": 67,
-            "error_max": 0.009532151205521422,
-            "error_tipico_max": 0.007070726507280591,
+            "error_max": 0.0028437500996840726,
+            "error_tipico_max": 0.0015902642111949741,
+            "regla_tamano_cumplida": true,
             "supera": true
           },
           {
             "t": 54,
             "n_estados": 69,
-            "error_max": 0.01426216474344727,
-            "error_tipico_max": 0.010984993388567855,
+            "error_max": 0.003427308543216878,
+            "error_tipico_max": 0.0015613472453686235,
+            "regla_tamano_cumplida": true,
             "supera": true
           }
         ],
-        "supera": false
+        "supera": true
       },
       "teorema_2": {
         "suma_rho": 0.20270533685379327,
@@ -188,8 +518,8 @@
         "supera_tolerancia": true,
         "supera": true
       },
-      "supera": false,
-      "_segundos": 106.57483263799986
+      "supera": true,
+      "_segundos": 229.67061133800053
     },
     "doble_pozo_estable": {
       "juguete": "doble_pozo_estable",
@@ -202,30 +532,35 @@
       ],
       "P_B_exacta": 0.059847991625061096,
       "committor": {
+        "estimador": "saturado (frecuencia por estado)",
+        "n_trayectorias": 16000000,
         "instantes": [
           {
             "t": 30,
             "n_estados": 23,
-            "error_max": 0.0029806502474551827,
-            "error_tipico_max": 0.003526445711668423,
+            "error_max": 0.0016844156281002887,
+            "error_tipico_max": 0.0011404803855007898,
+            "regla_tamano_cumplida": true,
             "supera": true
           },
           {
             "t": 45,
             "n_estados": 30,
-            "error_max": 0.012354737306799868,
-            "error_tipico_max": 0.010678704610465453,
+            "error_max": 0.0021231017688319587,
+            "error_tipico_max": 0.002931966687232456,
+            "regla_tamano_cumplida": true,
             "supera": true
           },
           {
             "t": 54,
             "n_estados": 39,
-            "error_max": 0.040973451293270624,
-            "error_tipico_max": 0.018369384218599034,
-            "supera": false
+            "error_max": 0.011166033029411215,
+            "error_tipico_max": 0.003967637077683844,
+            "regla_tamano_cumplida": true,
+            "supera": true
           }
         ],
-        "supera": false
+        "supera": true
       },
       "teorema_2": {
         "suma_rho": 0.054767325273049394,
@@ -257,8 +592,8 @@
         "supera_tolerancia": true,
         "supera": true
       },
-      "supera": false,
-      "_segundos": 116.73480079299952
+      "supera": true,
+      "_segundos": 233.47291061099895
     },
     "urna_polya": {
       "juguete": "urna_polya",
@@ -271,26 +606,31 @@
       ],
       "P_B_exacta": 0.49382716049382724,
       "committor": {
+        "estimador": "saturado (frecuencia por estado)",
+        "n_trayectorias": 16000000,
         "instantes": [
           {
             "t": 40,
             "n_estados": 37,
-            "error_max": 0.002749053188139783,
-            "error_tipico_max": 0.006351526152348032,
+            "error_max": 0.001309105778824815,
+            "error_tipico_max": 0.0007962983234074742,
+            "regla_tamano_cumplida": true,
             "supera": true
           },
           {
             "t": 60,
             "n_estados": 55,
-            "error_max": 0.008045751086067976,
-            "error_tipico_max": 0.007002575767439208,
+            "error_max": 0.0010399714022527595,
+            "error_tipico_max": 0.0009637792539284612,
+            "regla_tamano_cumplida": true,
             "supera": true
           },
           {
             "t": 72,
             "n_estados": 67,
-            "error_max": 0.022065344958178357,
-            "error_tipico_max": 0.00818629116359661,
+            "error_max": 0.0014227754396171077,
+            "error_tipico_max": 0.0010293944518304954,
+            "regla_tamano_cumplida": true,
             "supera": true
           }
         ],
@@ -327,7 +667,7 @@
         "supera": true
       },
       "supera": true,
-      "_segundos": 194.56969101200048
+      "_segundos": 286.4098455200001
     },
     "lento_rapido": {
       "juguete": "lento_rapido",
@@ -340,26 +680,31 @@
       ],
       "P_B_exacta": 0.130072680729034,
       "committor": {
+        "estimador": "saturado (frecuencia por estado)",
+        "n_trayectorias": 16000000,
         "instantes": [
           {
             "t": 75,
             "n_estados": 84,
-            "error_max": 0.0281716938516568,
-            "error_tipico_max": 0.019334984154748915,
+            "error_max": 0.007850010456095347,
+            "error_tipico_max": 0.003375953885046976,
+            "regla_tamano_cumplida": true,
             "supera": true
           },
           {
             "t": 112,
             "n_estados": 103,
-            "error_max": 0.015160056967275626,
-            "error_tipico_max": 0.019478034111852862,
+            "error_max": 0.004928406068155811,
+            "error_tipico_max": 0.0033042232561295223,
+            "regla_tamano_cumplida": true,
             "supera": true
           },
           {
             "t": 135,
             "n_estados": 115,
-            "error_max": 0.030107147988181926,
-            "error_tipico_max": 0.01800235942993752,
+            "error_max": 0.0058045547539534725,
+            "error_tipico_max": 0.003016035404181889,
+            "regla_tamano_cumplida": true,
             "supera": true
           }
         ],
@@ -396,7 +741,7 @@
         "supera": true
       },
       "supera": true,
-      "_segundos": 1062.8589239030007
+      "_segundos": 1342.5489648300008
     },
     "doble_pozo_deriva": {
       "juguete": "doble_pozo_deriva",
@@ -409,26 +754,31 @@
       ],
       "P_B_exacta": 0.44357691372240865,
       "committor": {
+        "estimador": "saturado (frecuencia por estado)",
+        "n_trayectorias": 16000000,
         "instantes": [
           {
             "t": 40,
             "n_estados": 31,
-            "error_max": 0.011623857085290124,
-            "error_tipico_max": 0.009821238023311136,
+            "error_max": 0.0032806379312693146,
+            "error_tipico_max": 0.0012681643462371227,
+            "regla_tamano_cumplida": true,
             "supera": true
           },
           {
             "t": 60,
             "n_estados": 58,
-            "error_max": 0.007867917758699439,
-            "error_tipico_max": 0.0047255496700988634,
+            "error_max": 0.002130621360196594,
+            "error_tipico_max": 0.000938707389647976,
+            "regla_tamano_cumplida": true,
             "supera": true
           },
           {
             "t": 72,
             "n_estados": 61,
-            "error_max": 0.006402666088021092,
-            "error_tipico_max": 0.005172987506810352,
+            "error_max": 0.002782569810010904,
+            "error_tipico_max": 0.0010254934386312357,
+            "regla_tamano_cumplida": true,
             "supera": true
           }
         ],
@@ -465,7 +815,7 @@
         "supera": true
       },
       "supera": true,
-      "_segundos": 170.0768709519998
+      "_segundos": 319.7351987890015
     }
   },
   "resumen_cobertura": {
@@ -488,8 +838,8 @@
   },
   "criterios": {
     "committor": {
-      "doble_pozo_gaussiano": false,
-      "doble_pozo_estable": false,
+      "doble_pozo_gaussiano": true,
+      "doble_pozo_estable": true,
       "urna_polya": true,
       "lento_rapido": true,
       "doble_pozo_deriva": true
@@ -519,10 +869,10 @@
     "cobertura": 0.925,
     "recuperacion_top3": 0.94,
     "fdr": 0.023,
-    "horas_cpu_8_nucleos": 0.1969412818004515
+    "horas_cpu_8_nucleos": 0.2723822170695488
   },
   "supera": {
-    "committor": false,
+    "committor": true,
     "teorema_2": true,
     "teorema_3": true,
     "cota_informacion": true,
@@ -530,7 +880,7 @@
     "pod_plantado": true,
     "computo": true
   },
-  "supera_puerta": false,
-  "segundos_reloj": 1063.992885139999,
-  "segundos_cpu": 5671.908915853003
+  "supera_puerta": true,
+  "segundos_reloj": 1343.8444124120015,
+  "segundos_cpu": 7844.607851603006
 }
