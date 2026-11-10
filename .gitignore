@@ -7,3 +7,5 @@ dist/
 .venv/
 corridas/
 *.tmp
+datos/brutos/cliopatria/*.zip
+datos/brutos/cliopatria/README.md

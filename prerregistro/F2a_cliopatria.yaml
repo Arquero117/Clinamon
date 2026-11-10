@@ -1,0 +1,50 @@
+# Prerregistro de la validación de la iteración 2 de F2a con datos nuevos (Cliopatria). Manual §13.3, §17.2.
+# Pedido por la persona el 2026-11-10: «valídalo con los datos nuevos de Cliopatria añadiendo las correcciones».
+# Se congela ANTES de escribir el código de las correcciones y antes de construir el panel de Cliopatria.
+# Umbrales: los de F2a, aprobados por la persona, aplicados al único observable disponible (territorio).
+
+fase: F2a
+iteracion: 2
+nombre: Validación de la iteración 2 con Cliopatria (datos que ningún modelo ha visto)
+fecha_congelacion: "2026-11-10"
+
+datos:
+  fuente: "Cliopatria v0.2.1 (Seshat), Zenodo 23128623, fichero cliopatria.geojson.zip sha256 e10a4e429fca708788ff9e7572a95fce801fae55852d217cffabc1c59cd4eed4"
+  lugares: "las coordenadas (Latitude, Longitude) de las 35 NGA de la hoja NGAs de Seshat Equinox"
+  anios: "cada siglo de −3400 a 1900"
+  observable: "Terr = log10 del área (km²) de la polity de Cliopatria cuyo polígono contiene el punto y está vigente en ese año (FromYear ≤ año ≤ ToYear); si hay varias, la de mayor área; si no hay ninguna, hueco"
+  gran_region: "la de la NGA en el panel de Seshat (World Region)"
+  continuidad: "misma polity = mismo nombre (Name) que en el siglo anterior"
+
+modelo_iteracion_2:
+  base: "rivales R1, R2, R3, jerarquía, Laplace y apilamiento exactamente como en la iteración 1"
+  correcciones:
+    - "q(y) = logística(c0 + c1·z), z = nivel del observable estandarizado con los datos de entrenamiento: la probabilidad de que el valor no cambie depende del nivel"
+    - "escala del cambio s(y) = s·exp(d1·z) en los tres rivales: la volatilidad depende del nivel"
+  motivo: "diagnóstico de la iteración 1 (informes/F2a/puerta_F2a.md): q cae de 0.88 a 0.21 con la complejidad"
+  desarrollo: "solo orígenes −6000…−3500 del panel de Seshat; ninguna puntuación de Cliopatria antes de la evaluación"
+
+hindcast:
+  origenes: [-3000, -2500, -2000, -1500, -1000, -500, 0, 500, 1000, 1500]
+  horizontes_anios: [100, 200, 300]
+  regla_sin_fuga: "como en F2a: en cada origen, solo pares con destino ≤ origen"
+  civilizacion_no_usada: "como en F2a, sobre Terr a 100 años"
+  referencias: [persistencia, tendencia_lineal_500, climatologia]
+
+puerta:
+  habilidad_persistencia: {observable: Terr, horizontes: [100, 200], cota_inferior_90_bootstrap_bloques_gran_region: "> 0"}
+  cobertura_agregada: {por: "Terr × horizonte (3 combinaciones)", cobertura_90: [0.85, 0.95], cobertura_50: [0.43, 0.57]}
+  cobertura_estratificada: {por: "gran región con >= 30 predicciones de Terr", cobertura_90: [0.75, 0.98]}
+  civilizacion_no_usada: {observable: Terr, horizonte: 100, regiones_con_habilidad_positiva_min: 7, de: "las grandes regiones con predicciones"}
+  chapman_kolmogorov: {observable: Terr, fraccion_celdas_min: 0.80}
+  inevitabilidad: {rango: [0.2, 0.8], en: "grandes regiones con >= 30 predicciones de Terr"}
+  computo: {horas_max_cpu_8_nucleos: 1.0}
+
+ensayo:
+  semillas_puerta: [930001]
+  bootstrap_reps: 1000
+  muestras_predictivas: 2000
+
+informativo:
+  - "Se informa también la iteración 2 sobre Seshat (los mismos orígenes de la iteración 1), marcada como POST HOC: la corrección se diseñó viendo ese resultado."
+  - "Si el número de grandes regiones con predicciones es menor que 7, el criterio de civilización no usada se declara no evaluable (no superado)."

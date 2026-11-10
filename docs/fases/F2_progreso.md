@@ -39,9 +39,20 @@ inevitabilidad, Chapman-Kolmogorov (84 %), cómputo. Falla: cobertura agregada (
 civilización no usada (5/10). Diagnóstico: q constante; el cambio de polity depende fuertemente del nivel de SPC
 y de la época.
 
+## Iteración 2 + validación con Cliopatria (pedida por la persona)
+
+- [x] Q0. Prerregistro `prerregistro/F2a_cliopatria.yaml` congelado ANTES de escribir las correcciones y antes
+      de construir el panel de Cliopatria (mismos umbrales de F2a, observable Terr).
+- [ ] Q1. Correcciones en `hindcast/modelos.py`: q(y) logística y escala s(y) = s·exp(d1·z), en los tres rivales;
+      probar SOLO con orígenes de desarrollo de Seshat.
+- [ ] Q2. `ingesta/cliopatria.py`: descarga con sha256, panel NGA × siglo (−3400…1900) de log10 del área.
+- [ ] Q3. `puerta/f2a_cliopatria.py` + `clinamen puerta-f2a-cliopatria`; ejecutar UNA vez (semilla 930001);
+      además, iteración 2 sobre Seshat marcada post hoc.
+- [ ] Q4. Informe, docs, commit, push.
+
 ## Siguiente paso concreto
 
-Decidir con la persona si se hace la iteración 2 (§17.2 permite dos). Propuesta: q y la escala del cambio como
+(Resuelto: la persona pidió iteración 2 validada con Cliopatria.) Seguir por Q1. Antes: (§17.2 permite dos). Propuesta: q y la escala del cambio como
 función del nivel del observable (logística en y), mismo resto del diseño. Advertencia: la iteración 2 está
 motivada por el resultado de la puerta, así que su evaluación con los mismos orígenes es en parte post hoc; se
 declarará así y se añadirá como control un prerregistro de datos nuevos (p. ej. Cliopatria) si se quiere una
