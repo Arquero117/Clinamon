@@ -182,9 +182,16 @@ class Identidad(_Base):
 class Observable(_Base):
     nombre: str
     variable: str
-    reduccion: Literal["suma", "media", "max", "herfindahl", "valor"]
+    reduccion: Literal["suma", "media", "max", "herfindahl", "valor", "entidad"]
     unidad: str = Field(min_length=1)
     descripcion: str = Field(min_length=1)
+    entidad: Optional[int] = None    # solo con reduccion 'entidad'
+
+    @model_validator(mode="after")
+    def _ent(self):
+        if (self.reduccion == "entidad") != (self.entidad is not None):
+            raise ValueError(f"observable {self.nombre}: 'entidad' va con la reducción 'entidad' y solo con ella")
+        return self
 
 
 class Circuitos(_Base):

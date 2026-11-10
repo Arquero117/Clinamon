@@ -1,0 +1,150 @@
+# Ontología del mundo sintético de F1 (§13.2).
+#
+# Mundo SINTÉTICO de validación de la cadena completa (asimilación → gemelos → efecto de POD). No describe
+# ninguna sociedad real; todos los parámetros son supuestos. Sus PODs tienen efecto verdadero calculable en el
+# modelo verdadero, y las entidades 3–5 están desconectadas de la 0: un POD sobre ellas tiene efecto nulo en ley
+# sobre los observables de la entidad 0.
+
+nombre: sintetico_f1
+descripcion: >
+  Seis entidades en dos componentes (0–1–2 y 3–4–5). Cada una tiene una capacidad con dos regímenes
+  metaestables (doble pozo) empujada por ruido gaussiano, por el rasgo de su gobernante y por sus vecinos; la
+  muerte del gobernante da un choque de sucesión. La población crece según la capacidad y se observa con error
+  lognormal y huecos.
+advertencia: "Mundo sintético F1: sin contenido histórico; sirve para validar asimilación, gemelos y cobertura."
+
+topologia: {tipo: lista, entidades: 6, aristas: [[0, 1], [1, 2], [3, 4], [4, 5]]}
+
+x-sup: &sup
+  procedencia: supuesto
+  referencia: "ninguna: supuesto del mundo sintético F1"
+  invariante: true
+
+variables:
+  capacidad:            {bloque: M, tipo: estado, unidad: índice, rango: [-6, 6], descripcion: "Capacidad estatal (doble pozo: régimen débil < 0 < régimen fuerte)"}
+  poblacion:            {bloque: M, tipo: stock,  unidad: personas, rango: [0, 1.0e10], descripcion: Población}
+  nacimientos:          {bloque: M, tipo: flujo,  unidad: personas/año, rango: [0, 1.0e10], descripcion: Nacimientos}
+  muertes:              {bloque: M, tipo: flujo,  unidad: personas/año, rango: [0, 1.0e10], descripcion: Muertes}
+  gobernante_edad:      {bloque: A, tipo: estado, unidad: años, rango: [0, 130], descripcion: Edad del gobernante}
+  gobernante_capacidad: {bloque: A, tipo: estado, unidad: desviaciones típicas, rango: [-9, 9], descripcion: Rasgo del gobernante}
+  gobernante_murio:     {bloque: A, tipo: flujo,  unidad: indicador, rango: [0, 1], descripcion: 1 si el gobernante murió este año}
+
+parametros:
+  sf_beta:        {<<: *sup, valor: 0.0,   unidad: índice/año, prior: {familia: uniforme, rango: [-0.25, 0.25]}, descripcion: "asimetría del doble pozo (inferido)"}
+  sf_sigma:       {<<: *sup, valor: 0.25,  unidad: índice/año½, prior: {familia: uniforme, rango: [0.15, 0.35]}, descripcion: "intensidad del ruido de capacidad (inferido)"}
+  sf_escala:      {<<: *sup, valor: 0.25,  unidad: 1/año, prior: {familia: degenerado, rango: [0.25, 0.25]}}
+  sf_acople:      {<<: *sup, valor: 0.3,   unidad: "1", prior: {familia: degenerado, rango: [0.3, 0.3]}}
+  sf_peso_gob:    {<<: *sup, valor: 0.3,   unidad: índice, prior: {familia: degenerado, rango: [0.3, 0.3]}}
+  sf_choque:      {<<: *sup, valor: 1.0,   unidad: índice, prior: {familia: degenerado, rango: [1.0, 1.0]}, descripcion: "caída de capacidad al morir el gobernante"}
+  sf_natalidad:   {<<: *sup, valor: 0.035, unidad: 1/año, prior: {familia: degenerado, rango: [0.035, 0.035]}}
+  sf_sens_cap:    {<<: *sup, valor: 0.3,   unidad: "1", prior: {familia: degenerado, rango: [0.3, 0.3]}, descripcion: "sensibilidad de la natalidad a tanh(capacidad)"}
+  sf_mortalidad:  {<<: *sup, valor: 0.033, unidad: 1/año, prior: {familia: degenerado, rango: [0.033, 0.033]}}
+  sf_gomp_a:      {<<: *sup, valor: 0.004, unidad: 1/año, prior: {familia: degenerado, rango: [0.004, 0.004]}}
+  sf_gomp_b:      {<<: *sup, valor: 0.08,  unidad: 1/año, prior: {familia: degenerado, rango: [0.08, 0.08]}}
+  sf_q_min:       {<<: *sup, valor: 0.01,  unidad: probabilidad, prior: {familia: degenerado, rango: [0.01, 0.01]}}
+  sf_q_max:       {<<: *sup, valor: 0.9,   unidad: probabilidad, prior: {familia: degenerado, rango: [0.9, 0.9]}}
+  sf_edad_min:    {<<: *sup, valor: 18.0,  unidad: años, prior: {familia: degenerado, rango: [18, 18]}}
+  sf_edad_rango:  {<<: *sup, valor: 30.0,  unidad: años, prior: {familia: degenerado, rango: [30, 30]}}
+  sf_obs_sd:      {<<: *sup, valor: 0.03,  unidad: log, prior: {familia: degenerado, rango: [0.03, 0.03]}, descripcion: "error lognormal de los recuentos de población"}
+  sf_ini_cap_sd:  {<<: *sup, valor: 0.3,   unidad: índice, prior: {familia: degenerado, rango: [0.3, 0.3]}}
+  sf_ini_pob_min: {<<: *sup, valor: 5.0e5, unidad: personas, prior: {familia: degenerado, rango: [5.0e5, 5.0e5]}}
+  sf_ini_pob_max: {<<: *sup, valor: 2.0e6, unidad: personas, prior: {familia: degenerado, rango: [2.0e6, 2.0e6]}}
+  sf_ini_edad_min: {<<: *sup, valor: 20.0, unidad: años, prior: {familia: degenerado, rango: [20, 20]}}
+  sf_ini_edad_max: {<<: *sup, valor: 60.0, unidad: años, prior: {familia: degenerado, rango: [60, 60]}}
+
+fuentes:
+  inicial:
+    familia: difusiva
+    dominio: entidad
+    ranuras: 5
+    tiempo_identidad_anios: inf
+    justificacion_identidad: "Estado inicial común a todos los brazos por construcción."
+    descripcion: "Régimen inicial (0), capacidad (1), población (2), edad (3) y rasgo (4) del gobernante."
+  ruido_capacidad:
+    familia: difusiva
+    dominio: entidad
+    ranuras: 1
+    tiempo_identidad_anios: 0.05
+    inclinable: true
+    justificacion_identidad: "Agregado de sucesos pequeños de corte y campaña: se desacopla en semanas."
+    descripcion: "Innovación gaussiana de la capacidad."
+  muerte_gobernante:
+    familia: salto_ligero
+    dominio: entidad
+    ranuras: 1
+    tiempo_identidad_anios: 2
+    justificacion_identidad: "Fragilidad compartida (edad); exposición re-sorteada en años (§4.3)."
+    eventos:
+      - {nombre: muere,     ranura: 0, descripcion: "El gobernante muere este año"}
+      - {nombre: sobrevive, ranura: 0, descripcion: "El gobernante sobrevive este año"}
+    descripcion: "Muerte del gobernante con riesgo de Gompertz."
+  sucesion:
+    familia: salto_ligero
+    dominio: entidad
+    ranuras: 2
+    tiempo_identidad_anios: 1
+    justificacion_identidad: "Rasgos de un sucesor concebido tras el POD: otra persona (A8)."
+    descripcion: "Edad (0) y rasgo (1) del sucesor."
+
+identidades:
+  poblacion:
+    tipo: stock_flujo
+    stock: poblacion
+    entradas: [nacimientos]
+    salidas: [muertes]
+    descripcion: "Balance demográfico."
+
+observables:
+  capacidad_0:      {variable: capacidad, reduccion: entidad, entidad: 0, unidad: índice, descripcion: "Capacidad de la entidad 0 (observable de interés)"}
+  capacidad_media:  {variable: capacidad, reduccion: media, unidad: índice, descripcion: Capacidad media}
+  poblacion_total:  {variable: poblacion, reduccion: suma,  unidad: personas, descripcion: Población total}
+  sucesiones:       {variable: gobernante_murio, reduccion: suma, unidad: gobernantes/año, descripcion: Sucesiones}
+
+observaciones:
+  censo:
+    variable: poblacion
+    entidades: [0, 1, 2, 3, 4, 5]
+    familia: lognormal
+    sd: sf_obs_sd
+    fraccion_huecos: 0.5
+    descripcion: "Recuentos de población con error lognormal; la mitad de los años-entidad faltan."
+
+x-ev: &ev
+  referencias: ["ninguna: mecanismo sintético de F1"]
+  nota: "Mundo sintético de validación; sin evidencia histórica."
+
+estado_inicial:
+  ecuacion: "régimen ±1 equiprobable más ruido normal; población uniforme; gobernante de edad uniforme y rasgo N(0,1)"
+  lee: []
+  escribe: [capacidad, poblacion, gobernante_edad, gobernante_capacidad]
+  parametros: [sf_ini_cap_sd, sf_ini_pob_min, sf_ini_pob_max, sf_ini_edad_min, sf_ini_edad_max]
+  fuentes: [inicial]
+  circuitos: {}
+  evidencia: *ev
+
+mecanismos:
+  gobernante:
+    ecuacion: "q = clip(1 − exp(−a e^{b (edad − 20)})); si muere: sucesor con edad U y rasgo N(0, 1)"
+    lee: [gobernante_edad, gobernante_capacidad]
+    escribe: [gobernante_edad, gobernante_capacidad, gobernante_murio]
+    parametros: [sf_gomp_a, sf_gomp_b, sf_q_min, sf_q_max, sf_edad_min, sf_edad_rango]
+    fuentes: [muerte_gobernante, sucesion]
+    circuitos: {}
+    evidencia: *ev
+  capacidad:
+    ecuacion: "c' = c + s (c − c³ + β + k (media_vecinos(c) − c) + w tanh(g)) + σ z − J · murió"
+    lee: [capacidad, gobernante_capacidad, gobernante_murio]
+    escribe: [capacidad]
+    parametros: [sf_escala, sf_beta, sf_acople, sf_peso_gob, sf_sigma, sf_choque]
+    fuentes: [ruido_capacidad]
+    circuitos: {positivos: ["capacidad → capacidad (c − c³: autorrefuerzo cerca de 0)"]}
+    estructura_no_ergodica: [metaestabilidad]
+    evidencia: *ev
+  demografia:
+    ecuacion: "nacimientos = P n (1 + r tanh(c)); muertes = P m"
+    lee: [poblacion, capacidad]
+    escribe: [nacimientos, muertes, poblacion]
+    parametros: [sf_natalidad, sf_sens_cap, sf_mortalidad]
+    fuentes: []
+    circuitos: {}
+    evidencia: *ev

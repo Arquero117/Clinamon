@@ -139,6 +139,8 @@ def calcular_observables(modelo: Modelo, x: dict) -> dict[str, np.ndarray]:
             r = mat.media_filas(v)
         elif o.reduccion == "max":
             r = mat.max_filas(v)
+        elif o.reduccion == "entidad":
+            r = v[o.entidad:o.entidad + 1]
         elif o.reduccion == "herfindahl":
             tot = mat.suma_filas(v)
             s = v / np.where(tot > 0, tot, 1.0)

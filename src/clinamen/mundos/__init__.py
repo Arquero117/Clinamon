@@ -5,6 +5,7 @@ import importlib
 
 MUNDOS = {
     "banco_f0": "clinamen.mundos.banco_f0.modelo:construir_modelo",
+    "sintetico_f1": "clinamen.mundos.sintetico_f1.modelo:construir_modelo",
 }
 
 

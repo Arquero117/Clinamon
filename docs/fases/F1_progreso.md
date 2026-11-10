@@ -16,7 +16,7 @@
 - [x] P5. Motor: topología por lista de aristas; varios brazos (un POD por brazo); estado inicial dado; API paso a
       paso con reindexado (filtro de partículas); parámetros por columna; modelo de observación en la ontología.
       F0 debe seguir pasando (tests y `clinamen puerta-f0`).
-- [ ] P6. Mundo sintético `sintetico_f1` (ontología + mecanismos).
+- [x] P6. Mundo sintético `sintetico_f1` (ontología + mecanismos).
 - [ ] P7. M6 asimilación: filtro de partículas bootstrap + muestreo por importancia adaptativo pseudo-marginal.
 - [ ] P8. M10: degradación, efecto verdadero, intervalos, cobertura, ranking de candidatos, BH.
 - [ ] P9. `clinamen puerta-f1`: evaluación con semillas de puerta; informe; docs; commit; push.
@@ -59,9 +59,22 @@ Lecciones (ya incorporadas al código):
 - La puerta F0 sigue superándose (comprobado tras P5). La huella de ontología de banco_f0 cambió por el
   esquema (campos nuevos de topología); la dinámica no.
 
+## P6 hecho (mundo sintético)
+
+- `mundos/sintetico_f1/`: 6 entidades, aristas (0,1),(1,2),(3,4),(4,5); 3 mecanismos (gobernante, capacidad,
+  demografía); fuentes inicial, ruido_capacidad (inclinable), muerte_gobernante (muere/sobrevive), sucesion.
+- Parámetros inferibles: sf_beta U[−0.25, 0.25] (0.0) y sf_sigma U[0.15, 0.35] (0.25); el resto degenerados.
+- Observación `censo`: población de las 6 entidades, lognormal sd 0.03, 50 % de huecos.
+- Observable de interés: `capacidad_0` (reducción nueva 'entidad').
+- Dinámica: ~5 cambios de régimen por siglo; muerte del gobernante 0 → efecto −0.36 al año, −0.28 a 5 años,
+  ~0 a 24 años (transitorio). POD en la entidad 4 → nulo en ley sobre capacidad_0 (comprobado).
+- Rendimiento: ~0.8 µs por trayectoria-año.
+
 ## Siguiente paso concreto
 
-P6: mundo `sintetico_f1` en `src/clinamen/mundos/sintetico_f1/` (ontología YAML + mecanismos + modelo.py) y
-registrarlo en `clinamen/mundos/__init__.py`. Diseño previsto: 6 entidades, aristas (0,1),(1,2),(3,4),(4,5);
-capacidad c_e en doble pozo con ruido gaussiano inclinable, choque −J al morir el gobernante, deriva por rasgo
-del gobernante, acoplamiento k con vecinos; población observada (lognormal, huecos); parámetros a inferir 2–3.
+P7: `clinamen/asimilacion/` (M6): filtro de partículas bootstrap sobre `motor.Simulacion` con columnas
+= M valores de θ × K partículas (parámetros por columna), verosimilitud lognormal de `observaciones` con huecos,
+remuestreo por θ (dentro de cada bloque de K columnas), log-verosimilitud marginal por θ; muestreo por
+importancia adaptativo en 3 etapas sobre θ (prior → mezcla t ajustada + 10 % de prior); muestras conjuntas
+(θ, x_t0) de la posterior de filtrado. Diseño del experimento: historia de 40 años (pasos 0–39), POD en el paso
+40, Y = capacidad_0 tras el paso 49 (H = 10).
