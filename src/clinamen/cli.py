@@ -58,6 +58,13 @@ def _puerta_f0(args):
     sys.exit(0 if res["supera_puerta"] else 1)
 
 
+def _puerta_f1(args):
+    from .puerta.f1 import evaluar_puerta_f1
+    kw = {"procesos": args.procesos, "max_horas": args.max_horas}
+    res = evaluar_puerta_f1(args.salida, **kw) if args.salida else evaluar_puerta_f1(**kw)
+    sys.exit(0 if res["supera_puerta"] else 1)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="clinamen", description="Motor de historia contrafactual (fase F0)")
     sub = ap.add_subparsers(dest="orden", required=True)
@@ -86,6 +93,12 @@ def main(argv=None):
     p = sub.add_parser("puerta-f0", help="evalúa la puerta F0 contra el prerregistro")
     p.add_argument("--salida", default=None)
     p.set_defaults(f=_puerta_f0)
+
+    p1 = sub.add_parser("puerta-f1", help="evalúa la puerta F1 contra el prerregistro (reanudable)")
+    p1.add_argument("--salida", default=None)
+    p1.add_argument("--procesos", type=int, default=4)
+    p1.add_argument("--max-horas", type=float, default=2.0)
+    p1.set_defaults(f=_puerta_f1)
 
     args = ap.parse_args(argv)
     args.f(args)
