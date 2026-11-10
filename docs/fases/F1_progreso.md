@@ -103,6 +103,10 @@ válidos con el código de la iteración 2 (deterministas, mismo código).
 Iteración 2: rehacer los cinco juguetes con la semilla de puerta 910001 y, más estricto que el prerregistro,
 exigir también que pasen con semillas nuevas 910011 y 910021 (contra el sobreajuste a la semilla de puerta).
 Si la iteración 2 falla: simplificar el modelo (§17.2), no la puerta.
+Comprobación de desarrollo (semillas 11, 12) de la corrección: estable y urna superan todo.
+Iteración 2 EN EJECUCIÓN: `clinamen puerta-f1` (rehace solo los juguetes; partes de juguetes borradas) y luego
+robustez con 910011/910021 (log en el scratchpad; si se pierde, relanzar
+`python <script it2> <5 juguetes> 910011,910021`, script = clinamen.puerta.f1._tarea('juguete', k, s)).
 
 ## Siguiente paso concreto
 
