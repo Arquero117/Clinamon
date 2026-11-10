@@ -118,7 +118,7 @@ def evaluar_puerta_f2a(salida=RAIZ / "informes" / "F2a", informar=print) -> dict
     out = {"fase": "F2a", "prerregistro_sha256": sha, "version": __version__, "commit": commit_git(),
            "criterios": crit, "supera": supera, "supera_puerta": all(supera.values()),
            "crps_medio": {f"{a}_{b}": r.to_dict() for (a, b), r in tabla.iterrows()},
-           "n_predicciones": int(len(H)), "pesos_apilamiento": H.groupby(["origen", "observable"]).pesos.first().to_dict()}
+           "n_predicciones": int(len(H)), "pesos_apilamiento": {f"{a}|{b}": v for (a, b), v in H.groupby(["origen", "observable"]).pesos.first().items()}}
     salida = Path(salida)
     salida.mkdir(parents=True, exist_ok=True)
     H.to_parquet(salida / "hindcast.parquet", index=False)
