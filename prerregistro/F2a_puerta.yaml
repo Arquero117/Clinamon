@@ -1,0 +1,69 @@
+# Prerregistro de la puerta F2a (hindcast de escala social con datos reales). Manual §17.1 F2, §13.3, §12.
+# Umbrales aprobados por la persona el 2026-11-10 (docs/fases/F2_propuesta.md, «Aprobar tal cual»).
+# Se congela ANTES de escribir código de F2. No se edita; sha256 en F2a_puerta.sha256.
+
+fase: F2a
+nombre: Hindcast de escala social (Seshat Equinox)
+modulos: [M2, M3, M6, M10]
+fecha_congelacion: "2026-11-10"
+
+datos:
+  fuente: "Seshat Equinox 2020, Zenodo 6629022, zip sha256 29127b15366bfce0bc39e52c0b6717fd0397291f7861464bf26885d611ada013"
+  observables: [SPC, Pop, Terr]          # SPC: hoja SPC_MilTech; Pop, Terr: log10, hoja ImpSCDat
+  paso_anios: 100
+  agrupacion: "gran región mundial de la hoja Polities (World Region)"
+
+modelos_rivales:
+  R1: "crecimiento logístico hacia un techo con colapsos de cola pesada"
+  R2: "paseo aleatorio con deriva y choques t de Student"
+  R3: "reversión a un nivel regional (Ornstein-Uhlenbeck)"
+  comun: "observación por polity: con probabilidad q el valor no cambia en un siglo (la polity continúa); q se estima"
+  jerarquia: "parámetros por gran región con encogimiento hacia el valor común (prior normal de la desviación)"
+  prediccion: "apilamiento de las predictivas de R1–R3 con pesos que minimizan el CRPS en los últimos 500 años previos al origen"
+
+hindcast:
+  origenes: [-3000, -2500, -2000, -1500, -1000, -500, 0, 500, 1000, 1500]
+  horizontes_anios: [100, 200, 300]
+  regla_sin_fuga: "en cada origen, todo ajuste usa solo pares (y_t, y_{t+100}) con t + 100 <= origen"
+  civilizacion_no_usada: "ajuste con todas las grandes regiones salvo una (todas las fechas); predicción de la región dejada fuera desde cada uno de sus siglos"
+  referencias: [persistencia, tendencia_lineal_500, climatologia]
+  desarrollo: "durante el desarrollo solo se usan orígenes de −6000 a −3500 (no evaluados en la puerta)"
+
+puerta:
+  habilidad_persistencia:
+    observable: SPC
+    horizontes: [100, 200]
+    descripcion: "habilidad CRPS = 1 − CRPS_apilado / CRPS_persistencia sobre todas las predicciones de los orígenes"
+    cota_inferior_90_bootstrap_bloques_region: "> 0"
+  cobertura_agregada:
+    por: "observable × horizonte (9 combinaciones)"
+    cobertura_90: [0.85, 0.95]
+    cobertura_50: [0.43, 0.57]
+  cobertura_estratificada:
+    por: "gran región con >= 30 predicciones (SPC, todos los horizontes)"
+    cobertura_90: [0.75, 0.98]
+  civilizacion_no_usada:
+    observable: SPC
+    horizonte: 100
+    regiones_con_habilidad_positiva_min: 7      # de 10 grandes regiones (las que tengan predicciones)
+  chapman_kolmogorov:
+    descripcion: >
+      SPC discretizado en 5 tramos por quintiles del panel. Matrices empíricas de transición T(100) y T(200)
+      (pares de siglos consecutivos de una misma región). Se exige que [T(100)]² caiga dentro del intervalo
+      bootstrap del 95 % (bloques de región) de T(200) en al menos el 80 % de las celdas. Se informa además la
+      T(200) simulada por R1 ajustado.
+    fraccion_celdas_min: 0.80
+  inevitabilidad:
+    descripcion: "PIT medio por gran región (SPC, todos los horizontes)"
+    rango: [0.2, 0.8]
+  computo:
+    horas_max_cpu_8_nucleos: 1.0
+
+ensayo:
+  semillas_puerta: [920001]
+  bootstrap_reps: 1000
+  muestras_predictivas: 2000
+
+notas:
+  - "Un hindcast valida predicciones, no intervenciones (A12): esta puerta no habilita PODs."
+  - "Si la habilidad frente a la persistencia no es positiva, el resultado se informa como negativo con números (§19.3); la puerta no se mueve."
