@@ -1,4 +1,4 @@
-"""Bloque G (meso) mínimo de F0: grafo fijo de entidades en rejilla.
+"""Bloque G (meso) mínimo: grafo fijo de entidades (rejilla o lista de aristas).
 
 Todas las agregaciones arista -> entidad y vecino -> entidad se hacen en orden fijo y explícito
 (listas de incidencia rellenadas hasta el grado máximo), sin multiplicaciones matriciales: el
@@ -12,21 +12,29 @@ from ..ontologia.esquema import Topologia
 
 
 class Rejilla:
+    """Grafo fijo de entidades: rejilla filas × columnas o lista explícita de aristas."""
+
     def __init__(self, topo: Topologia):
-        F, C = topo.filas, topo.columnas
-        self.E = F * C
-        a, b = [], []
-        for r in range(F):
-            for c in range(C):
-                e = r * C + c
-                if c + 1 < C:
-                    a.append(e); b.append(e + 1)
-                if r + 1 < F:
-                    a.append(e); b.append(e + C)
+        if topo.tipo == "rejilla":
+            F, C = topo.filas, topo.columnas
+            self.E = F * C
+            a, b = [], []
+            for r in range(F):
+                for c in range(C):
+                    e = r * C + c
+                    if c + 1 < C:
+                        a.append(e); b.append(e + 1)
+                    if r + 1 < F:
+                        a.append(e); b.append(e + C)
+        else:
+            self.E = topo.entidades
+            a = [int(u) for u, _ in topo.aristas]
+            b = [int(v) for _, v in topo.aristas]
         self.a = np.array(a, dtype=np.int64)
         self.b = np.array(b, dtype=np.int64)
         self.A = len(a)
-        G = 4
+        grados = np.bincount(np.concatenate([self.a, self.b]), minlength=self.E) if self.A else np.zeros(self.E, int)
+        G = max(1, int(grados.max()) if self.E else 1)
         self.vecinos = np.full((self.E, G), self.E, dtype=np.int64)    # relleno -> fila de ceros
         self.incidencia = np.full((self.E, G), self.A, dtype=np.int64)  # relleno -> arista nula
         self.rol = np.zeros((self.E, G), dtype=np.int8)                 # +1 extremo a, -1 extremo b
@@ -38,7 +46,7 @@ class Rejilla:
                 self.incidencia[e, j] = k
                 self.rol[e, j] = rol
                 n[e] += 1
-        self.grado = n.astype(np.float64)[:, None]
+        self.grado = np.maximum(n, 1).astype(np.float64)[:, None]   # aisladas: media de vecinos = 0
         self.G = G
         # índices sobre la pila [val_a; val_b; 0]: extremo a -> k, extremo b -> A + k, relleno -> 2A
         self._idx_pila = [np.where(self.rol[:, j] == 1, self.incidencia[:, j],

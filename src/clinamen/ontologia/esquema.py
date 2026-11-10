@@ -212,13 +212,42 @@ class FichaMecanismo(_Base):
 
 
 class Topologia(_Base):
-    tipo: Literal["rejilla"]
-    filas: int = Field(ge=1)
-    columnas: int = Field(ge=1)
+    tipo: Literal["rejilla", "lista"]
+    filas: Optional[int] = Field(None, ge=1)
+    columnas: Optional[int] = Field(None, ge=1)
+    entidades: Optional[int] = Field(None, ge=1)
+    aristas: tuple[tuple[int, int], ...] = ()
 
-    @property
-    def entidades(self) -> int:
-        return self.filas * self.columnas
+    @model_validator(mode="after")
+    def _forma(self):
+        if self.tipo == "rejilla":
+            if self.filas is None or self.columnas is None:
+                raise ValueError("rejilla: hacen falta filas y columnas")
+            object.__setattr__(self, "entidades", self.filas * self.columnas)
+        else:
+            if self.entidades is None:
+                raise ValueError("lista: hace falta el número de entidades")
+            for u, v in self.aristas:
+                if not (0 <= u < self.entidades and 0 <= v < self.entidades) or u == v:
+                    raise ValueError(f"arista inválida ({u}, {v})")
+            if len(set(self.aristas)) != len(self.aristas):
+                raise ValueError("aristas repetidas")
+        return self
+
+
+class Observacion(_Base):
+    """Modelo de observación (§3.1): lo que registran las fuentes, con error de medida explícito y huecos.
+
+    familia 'lognormal': log y = log x + N(0, sd²); 'normal': y = x + N(0, sd²). ``sd`` es el nombre de un
+    parámetro declarado (con su procedencia). ``fraccion_huecos`` describe la degradación de un mundo sintético.
+    """
+    nombre: str
+    variable: str
+    entidades: tuple[int, ...]
+    familia: Literal["normal", "lognormal"]
+    sd: str
+    fraccion_huecos: float = Field(0.0, ge=0.0, lt=1.0)
+    descripcion: str = Field(min_length=1)
 
 
 class Ontologia(_Base):
@@ -233,6 +262,7 @@ class Ontologia(_Base):
     observables: tuple[Observable, ...]
     mecanismos: tuple[FichaMecanismo, ...]
     estado_inicial: FichaMecanismo
+    observaciones: tuple[Observacion, ...] = ()
 
     # ------------------------------------------------------------------ validación cruzada
     @model_validator(mode="after")
@@ -272,6 +302,14 @@ class Ontologia(_Base):
                     if f in V and V[f].tipo != "flujo":
                         errores.append(f"identidad {i.nombre}: {f} no es un flujo")
 
+        for ob in self.observaciones:
+            if ob.variable not in V:
+                errores.append(f"observación {ob.nombre}: variable desconocida {ob.variable}")
+            if ob.sd not in P:
+                errores.append(f"observación {ob.nombre}: parámetro de error desconocido {ob.sd}")
+            if any(not (0 <= e < self.topologia.entidades) for e in ob.entidades):
+                errores.append(f"observación {ob.nombre}: entidad fuera de rango")
+
         con_identidad = {i.stock for i in self.identidades if i.tipo == "stock_flujo"}
         for v in self.variables:
             if v.tipo == "stock" and v.nombre not in con_identidad:
@@ -285,7 +323,7 @@ class Ontologia(_Base):
 
         escritas = set().union(*(m.escribe for m in fichas))
         leidas = set().union(*(m.lee for m in self.mecanismos))
-        usadas = leidas | {o.variable for o in self.observables} | set().union(*(i.variables() for i in self.identidades))
+        usadas = leidas | {o.variable for o in self.observables} | {ob.variable for ob in self.observaciones} | set().union(*(i.variables() for i in self.identidades))
         for v in V:
             if v not in escritas:
                 errores.append(f"variable {v} no la escribe ningún mecanismo")
@@ -296,7 +334,7 @@ class Ontologia(_Base):
             if v.tipo != "flujo" and v.nombre not in self.estado_inicial.escribe:
                 errores.append(f"estado inicial no inicializa {v.nombre}")
 
-        usados_p = set().union(*(m.parametros for m in fichas))
+        usados_p = set().union(*(m.parametros for m in fichas)) | {ob.sd for ob in self.observaciones}
         for p in P:
             if p not in usados_p:
                 errores.append(f"parámetro {p} huérfano")

@@ -58,18 +58,34 @@ class _PODActivo:
     evento: str | None = None
     ranura: int = 0
     desplazamiento: float = 0.0
+    brazo: int = 1
     aplicado: bool = field(default=False)
 
 
 class CampoAzar:
+    """Campo de azar de un lote con A brazos: el brazo 0 es el base; el brazo j ≥ 1 lleva sus PODs.
+
+    Columnas: [jN, (j+1)N) son las N partículas del brazo j. Flujos: 0 común; 2j−1 propio del brazo j una vez
+    desacoplado; 2j sorteos frescos de sus intervenciones (con j = 1 coincide con F0: 1 y 2).
+    """
+
     def __init__(self, ontologia: Ontologia, semilla: int, particulas: np.ndarray,
                  tamanos_dominio: dict[str, int], gemelos: bool = False,
                  acoplamiento: str = "fisico", pods: list | None = None,
-                 motor_philox: str = "auto"):
+                 motor_philox: str = "auto", ramas: list | None = None):
         if acoplamiento not in ACOPLAMIENTOS:
             raise ValueError(f"acoplamiento desconocido: {acoplamiento}")
         if not (0 <= semilla < 2 ** 64):
             raise ValueError("la semilla debe caber en 64 bits sin signo")
+        if ramas is None:
+            ramas = [list(pods or [])] if gemelos else []
+            if pods and not gemelos:
+                raise ValueError("un POD requiere ejecución con gemelos")
+        elif pods:
+            raise ValueError("usa ramas o pods, no ambos")
+        self.A = 1 + len(ramas)
+        if self.A > 127:
+            raise ValueError("como mucho 126 brazos con POD")
         self.ont = ontologia
         self.fuentes = {f.nombre: f for f in ontologia.fuentes}
         self.ids = {f.nombre: i + 1 for i, f in enumerate(ontologia.fuentes)}
@@ -79,12 +95,9 @@ class CampoAzar:
         self.k1 = (semilla >> 32) & 0xFFFFFFFF
         self.particulas = np.asarray(particulas, dtype=np.uint32)
         self.N = self.particulas.size
-        self.gemelos = gemelos
-        self.B = self.N * (2 if gemelos else 1)
-        self.c2 = np.tile(self.particulas, 2 if gemelos else 1)[None, :]
-        self.es_pod = np.zeros((1, self.B), dtype=bool)
-        if gemelos:
-            self.es_pod[0, self.N:] = True
+        self.gemelos = self.A > 1
+        self.B = self.N * self.A
+        self.c2 = np.tile(self.particulas, self.A)[None, :]
         self.tam = dict(tamanos_dominio)
         self.acoplamiento = acoplamiento
         self.motor_philox = motor_philox
@@ -96,18 +109,28 @@ class CampoAzar:
                 self.retardo[nombre] = 1
             else:
                 self.retardo[nombre] = math.inf if math.isinf(f.tau) else max(1, math.ceil(f.tau))
-        self.t_div = np.full(self.N, -1, dtype=np.int64)
-        self.coste = np.zeros(self.N, dtype=np.float64)
+        self.t_div_brazos = np.full((self.A, self.N), -1, dtype=np.int64)
+        self.coste_brazos = np.zeros((self.A, self.N), dtype=np.float64)
         self.pods: list[_PODActivo] = []
-        for pod in pods or []:
-            self._registrar_pod(pod)
+        for j, rama in enumerate(ramas, start=1):
+            for pod in rama:
+                self._registrar_pod(pod, j)
         self.t = None
         self._sorteadas: set[str] = set()
 
+    @property
+    def t_div(self):
+        return self.t_div_brazos[1] if self.A == 2 else self.t_div_brazos
+
+    @property
+    def coste(self):
+        return self.coste_brazos[1] if self.A == 2 else self.coste_brazos
+
+    def columnas(self, j: int) -> slice:
+        return slice(j * self.N, (j + 1) * self.N)
+
     # ------------------------------------------------------------------ PODs
-    def _registrar_pod(self, pod):
-        if not self.gemelos:
-            raise ValueError("un POD requiere ejecución con gemelos")
+    def _registrar_pod(self, pod, brazo: int = 1):
         tipo = pod.tipo
         if tipo == "nulo":
             return
@@ -120,7 +143,8 @@ class CampoAzar:
             ev = {e.nombre: e for e in f.eventos}.get(pod.evento)
             if ev is None:
                 raise ValueError(f"POD: la fuente {f.nombre} no declara el suceso {pod.evento}")
-            self.pods.append(_PODActivo("suceso", f.nombre, pod.paso, pod.indice, evento=ev.nombre, ranura=ev.ranura))
+            self.pods.append(_PODActivo("suceso", f.nombre, pod.paso, pod.indice, evento=ev.nombre,
+                                        ranura=ev.ranura, brazo=brazo))
         elif tipo == "inclinacion":
             if not f.inclinable:
                 raise ValueError(f"POD: la fuente {f.nombre} no admite inclinación gaussiana")
@@ -129,7 +153,7 @@ class CampoAzar:
             if not math.isfinite(pod.desplazamiento):
                 raise InadmisibleError("desplazamiento no finito")
             self.pods.append(_PODActivo("inclinacion", f.nombre, pod.paso, pod.indice,
-                                        ranura=pod.ranura, desplazamiento=float(pod.desplazamiento)))
+                                        ranura=pod.ranura, desplazamiento=float(pod.desplazamiento), brazo=brazo))
         else:
             raise ValueError(f"tipo de POD desconocido {tipo}")
 
@@ -139,9 +163,14 @@ class CampoAzar:
         self._sorteadas = set()
 
     def registrar_divergencia(self, difiere: np.ndarray) -> None:
-        """Marca el paso actual como el de divergencia en las partículas cuyos brazos difieren."""
-        nuevo = (self.t_div < 0) & np.asarray(difiere, dtype=bool)
-        self.t_div[nuevo] = self.t
+        """Marca el paso actual como el de divergencia donde el brazo j difiere del base.
+
+        ``difiere``: (N,) con dos brazos, o (A−1, N) en general.
+        """
+        d = np.asarray(difiere, dtype=bool).reshape(self.A - 1, self.N)
+        td = self.t_div_brazos[1:]
+        nuevo = (td < 0) & d
+        td[nuevo] = self.t
 
     def _flujo(self, fuente: str) -> np.ndarray:
         """Flujo por columna (1, B) para la fuente en el paso actual."""
@@ -150,9 +179,11 @@ class CampoAzar:
         d = self.retardo[fuente]
         if math.isinf(d):
             return np.zeros((1, self.B), dtype=np.uint32)
-        desacoplada = (self.t_div >= 0) & (self.t >= self.t_div + d)
-        flujo = np.zeros((1, self.B), dtype=np.uint32)
-        flujo[0, self.N:] = desacoplada.astype(np.uint32) * PROPIO
+        td = self.t_div_brazos
+        desacoplada = (td >= 0) & (self.t >= td + d)                     # (A, N)
+        propio = (2 * np.arange(self.A, dtype=np.uint32) - 1)[:, None]    # 2j − 1
+        flujo = np.where(desacoplada, propio, 0).astype(np.uint32).reshape(1, self.B)
+        flujo[0, :self.N] = 0
         return flujo
 
     def _brutas(self, fuente: str, k: int, flujo, c2, indices=None):
@@ -209,8 +240,9 @@ class CampoAzar:
         for pod in self.pods:
             if pod.tipo == "inclinacion" and pod.fuente == fuente and pod.paso == self.t:
                 fila = z[pod.ranura][pod.indice]
-                fila[self.N:] = fila[self.N:] + pod.desplazamiento
-                self.coste += 0.5 * pod.desplazamiento * pod.desplazamiento
+                cols = self.columnas(pod.brazo)
+                fila[cols] = fila[cols] + pod.desplazamiento
+                self.coste_brazos[pod.brazo] += 0.5 * pod.desplazamiento * pod.desplazamiento
                 pod.aplicado = True
         return z
 
@@ -219,23 +251,24 @@ class CampoAzar:
         si no, se sustituye por una uniforme fresca en A. Coste por partícula: −log K(A)."""
         D = self.tam[self.fuentes[pod.fuente].dominio]
         forma = (D, self.B)
-        lo = np.broadcast_to(np.asarray(lo, np.float64), forma)[pod.indice, self.N:]
-        hi = np.broadcast_to(np.asarray(hi, np.float64), forma)[pod.indice, self.N:]
+        cols = self.columnas(pod.brazo)
+        lo = np.broadcast_to(np.asarray(lo, np.float64), forma)[pod.indice, cols]
+        hi = np.broadcast_to(np.asarray(hi, np.float64), forma)[pod.indice, cols]
         masa = hi - lo
         if not np.all(masa > 0.0):
             malas = np.flatnonzero(~(masa > 0.0))
             raise InadmisibleError(
                 f"POD {pod.fuente}:{pod.evento} con probabilidad cero en partículas {self.particulas[malas][:10].tolist()}")
-        v = self._brutas(pod.fuente, pod.ranura + 1, np.uint32(INTERVENCION),
+        v = self._brutas(pod.fuente, pod.ranura + 1, np.uint32(2 * pod.brazo),
                          self.particulas[None, :], indices=[pod.indice])[pod.ranura][0]
         fila = u[pod.ranura][pod.indice]
-        actual = fila[self.N:]
+        actual = fila[cols]
         dentro = (actual >= lo) & (actual < hi)
         nuevo = lo + masa * v
         nuevo = np.minimum(nuevo, np.nextafter(hi, -np.inf))
         nuevo = np.maximum(nuevo, lo)
-        fila[self.N:] = np.where(dentro, actual, nuevo)
-        self.coste += -mat.log(masa)
+        fila[cols] = np.where(dentro, actual, nuevo)
+        self.coste_brazos[pod.brazo] += -mat.log(masa)
         pod.aplicado = True
 
 

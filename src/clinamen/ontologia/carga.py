@@ -19,7 +19,7 @@ def cargar_ontologia(ruta: str | Path) -> Ontologia:
     datos = yaml.safe_load(Path(ruta).read_text(encoding="utf-8"))
     # claves 'x-...' solo sirven de anclas YAML reutilizables
     datos = {k: v for k, v in datos.items() if not str(k).startswith("x-")}
-    for clave in ("variables", "parametros", "fuentes", "identidades", "observables", "mecanismos"):
+    for clave in ("variables", "parametros", "fuentes", "identidades", "observables", "mecanismos", "observaciones"):
         if clave in datos:
             datos[clave] = _lista_con_nombre(datos[clave])
     if isinstance(datos.get("estado_inicial"), dict) and "nombre" not in datos["estado_inicial"]:

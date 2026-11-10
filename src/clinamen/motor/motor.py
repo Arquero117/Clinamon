@@ -101,8 +101,11 @@ class ConfigSimulacion:
     anios_ancla: tuple = ()
     registrar_estados: bool = False   # solo para pruebas: guarda el estado completo en cada paso
     motor_philox: str = "auto"
-    parametros: dict | None = None    # sustituciones de parámetros (escalares o arrays (1, B))
+    parametros: dict | None = None    # sustituciones: escalares o arrays (1, N) por partícula (se repiten por brazo)
     al_paso: Callable | None = None   # función (t, x) llamada al final de cada paso (diagnóstico)
+    ramas: tuple | None = None        # varios brazos: tupla de tuplas de PODs, una por brazo (excluye gemelos/pods)
+    estado0: dict | None = None       # estado inicial dado: arrays (E, N) o (1, N) para toda variable no flujo
+    paso0: int = 0                    # índice del primer paso (el azar y los PODs usan pasos absolutos)
 
 
 @dataclass
@@ -117,6 +120,9 @@ class Resultado:
     estados: list | None = None
     particulas: np.ndarray = field(default_factory=lambda: np.zeros(0, np.int64))
     gemelos: bool = False
+    coste_brazos: np.ndarray | None = None      # (A, N)
+    t_div_brazos: np.ndarray | None = None      # (A, N)
+    estado_final: dict | None = None
 
     @property
     def N(self):
@@ -143,78 +149,133 @@ def calcular_observables(modelo: Modelo, x: dict) -> dict[str, np.ndarray]:
     return out
 
 
-def _divergencia(x: dict, N: int) -> np.ndarray:
-    d = np.zeros(N, dtype=bool)
+def _divergencia(x: dict, N: int, A: int = 2) -> np.ndarray:
+    """(A−1, N): el brazo j difiere del base en alguna variable."""
+    d = np.zeros((A - 1, N), dtype=bool)
     for a in x.values():
-        d |= np.any(a[:, N:] != a[:, :N], axis=0)
+        base = a[:, :N]
+        for j in range(1, A):
+            d[j - 1] |= np.any(a[:, j * N:(j + 1) * N] != base, axis=0)
     return d
 
 
-def simular(modelo: Modelo, cfg: ConfigSimulacion) -> Resultado:
-    mat.verificar_determinismo_posicional()
-    if cfg.pods and not cfg.gemelos:
-        raise ValueError("los PODs solo se aplican con gemelos")
-    N = cfg.particulas
-    particulas = np.arange(cfg.particula0, cfg.particula0 + N, dtype=np.int64)
-    campo = CampoAzar(modelo.ontologia, cfg.semilla, particulas, modelo.tamanos,
-                      gemelos=cfg.gemelos, acoplamiento=cfg.acoplamiento, pods=list(cfg.pods),
-                      motor_philox=cfg.motor_philox)
-    B = campo.B
-    valores = dict(modelo.parametros_nominales)
-    if cfg.parametros:
-        for k, v in cfg.parametros.items():
+class Simulacion:
+    """Simulación paso a paso. Permite reindexar columnas entre pasos (filtro de partículas, un solo brazo)."""
+
+    def __init__(self, modelo: Modelo, cfg: ConfigSimulacion):
+        mat.verificar_determinismo_posicional()
+        if cfg.pods and not cfg.gemelos:
+            raise ValueError("los PODs solo se aplican con gemelos")
+        self.modelo, self.cfg = modelo, cfg
+        N = self.N = cfg.particulas
+        self.particulas = np.arange(cfg.particula0, cfg.particula0 + N, dtype=np.int64)
+        self.campo = CampoAzar(modelo.ontologia, cfg.semilla, self.particulas, modelo.tamanos,
+                               gemelos=cfg.gemelos if cfg.ramas is None else False,
+                               acoplamiento=cfg.acoplamiento,
+                               pods=list(cfg.pods) if cfg.ramas is None else None,
+                               motor_philox=cfg.motor_philox,
+                               ramas=[list(r) for r in cfg.ramas] if cfg.ramas is not None else None)
+        self.A = self.campo.A
+        B = self.B = self.campo.B
+        valores = dict(modelo.parametros_nominales)
+        for k, v in (cfg.parametros or {}).items():
             if k not in valores:
                 raise KeyError(f"parámetro no declarado: {k}")
-            valores[k] = v
-    p = Parametros(valores)
-    x: dict[str, np.ndarray] = {}
-    ctx = Contexto(x=x, p=p, azar=campo, topo=modelo.topo, t=PASO_INICIAL, E=modelo.E, B=B)
-    campo.comenzar_paso(PASO_INICIAL)
-    modelo.inicial(ctx)
-    for f in modelo.flujos:
-        x[f] = np.zeros(modelo.forma(f, B))
-    faltan = {v.nombre for v in modelo.ontologia.variables} - set(x)
-    if faltan:
-        raise RuntimeError(f"el estado inicial no define {sorted(faltan)}")
+            v = np.asarray(v, dtype=np.float64)
+            if v.ndim == 2 and v.shape == (1, N) and self.A > 1:
+                v = np.tile(v, (1, self.A))
+            elif v.ndim == 2 and v.shape != (1, B):
+                raise ValueError(f"parámetro {k}: forma {v.shape}, se espera (1, {N})")
+            valores[k] = v if v.ndim else float(v)
+        self.p = Parametros(valores)
+        x: dict[str, np.ndarray] = {}
+        self.x = x
+        self.ctx = Contexto(x=x, p=self.p, azar=self.campo, topo=modelo.topo, t=PASO_INICIAL, E=modelo.E, B=B)
+        if cfg.estado0 is None:
+            self.campo.comenzar_paso(PASO_INICIAL)
+            modelo.inicial(self.ctx)
+        else:
+            for v in modelo.ontologia.variables:
+                if v.tipo == "flujo":
+                    continue
+                a = np.asarray(cfg.estado0[v.nombre], dtype=np.float64)
+                if a.shape != modelo.forma(v.nombre, N):
+                    raise ValueError(f"estado0[{v.nombre}] con forma {a.shape}")
+                x[v.nombre] = np.tile(a, (1, self.A)) if self.A > 1 else a.copy()
+        for f in modelo.flujos:
+            x[f] = np.zeros(modelo.forma(f, B))
+        faltan = {v.nombre for v in modelo.ontologia.variables} - set(x)
+        if faltan:
+            raise RuntimeError(f"el estado inicial no define {sorted(faltan)}")
+        self.fallos: list[Fallo] = []
+        if cfg.verificar:
+            self.fallos += verificar_paso(modelo.ontologia, -1, None, x, TOLERANCIA_F64)
+        self.t = cfg.paso0
+        self.pasos_verificados = 0
 
-    fallos: list[Fallo] = []
-    if cfg.verificar:
-        fallos += verificar_paso(modelo.ontologia, -1, None, x, TOLERANCIA_F64)
-    T = cfg.anios
+    def paso(self) -> dict:
+        """Avanza un paso y devuelve los observables macro (nombre -> (B,))."""
+        modelo, cfg, x, t = self.modelo, self.cfg, self.x, self.t
+        self.ctx.t = t
+        self.campo.comenzar_paso(t)
+        previo = {s: x[s].copy() for s in modelo.vigilados}
+        for f in modelo.flujos:
+            x[f] = np.zeros(modelo.forma(f, self.B))
+        for m in modelo.mecanismos:
+            m.paso(self.ctx)
+        if cfg.verificar:
+            nuevos = verificar_paso(modelo.ontologia, t, previo, x, TOLERANCIA_F64)
+            self.pasos_verificados += 1
+            if nuevos:
+                self.fallos += nuevos
+                if cfg.al_fallar == "error":
+                    raise IdentidadVioladaError("\n".join(str(f) for f in nuevos[:10]))
+        if self.A > 1:
+            self.campo.registrar_divergencia(_divergencia(x, self.N, self.A))
+        if cfg.al_paso is not None:
+            cfg.al_paso(t, x)
+        self.t += 1
+        return calcular_observables(modelo, x)
+
+    def reindexar(self, idx: np.ndarray) -> None:
+        """Sustituye la columna i por la columna idx[i] (remuestreo). Solo sin brazos con POD.
+
+        El azar sigue indexado por la ranura de columna, no por el origen: dos copias de una misma partícula
+        reciben sorteos independientes desde el paso siguiente.
+        """
+        if self.A != 1:
+            raise RuntimeError("reindexar solo con un brazo")
+        for k in list(self.x):
+            self.x[k] = self.x[k][:, idx]
+        for k, v in self.p.como_dict().items():
+            if isinstance(v, np.ndarray) and v.ndim == 2 and v.shape[1] == self.B:
+                object.__getattribute__(self.p, "_v")[k] = v[:, idx]
+
+
+def simular(modelo: Modelo, cfg: ConfigSimulacion) -> Resultado:
+    sim = Simulacion(modelo, cfg)
+    x, B, T = sim.x, sim.B, cfg.anios
     obs = {o.nombre: np.empty((T, B)) for o in modelo.ontologia.observables}
     anclas = {}
     estados = [] if cfg.registrar_estados else None
-    pasos_verificados = 0
     t_ini = time.perf_counter()
-    for t in range(T):
-        ctx.t = t
-        campo.comenzar_paso(t)
-        previo = {s: x[s].copy() for s in modelo.vigilados}
-        for f in modelo.flujos:
-            x[f] = np.zeros(modelo.forma(f, B))
-        for m in modelo.mecanismos:
-            m.paso(ctx)
-        if cfg.verificar:
-            nuevos = verificar_paso(modelo.ontologia, t, previo, x, TOLERANCIA_F64)
-            pasos_verificados += 1
-            if nuevos:
-                fallos += nuevos
-                if cfg.al_fallar == "error":
-                    raise IdentidadVioladaError("\n".join(str(f) for f in nuevos[:10]))
-        if cfg.gemelos:
-            campo.registrar_divergencia(_divergencia(x, N))
-        for k, v in calcular_observables(modelo, x).items():
-            obs[k][t] = v
+    for i in range(T):
+        t = sim.t
+        for k, v in sim.paso().items():
+            obs[k][i] = v
         if t in cfg.anios_ancla:
             anclas[t] = {k: v.copy() for k, v in x.items()}
-        if cfg.al_paso is not None:
-            cfg.al_paso(t, x)
         if estados is not None:
             estados.append({k: v.copy() for k, v in x.items()})
     segundos = time.perf_counter() - t_ini
+    campo = sim.campo
     for pod in campo.pods:
-        if pod.paso < T and not pod.aplicado:
+        if cfg.paso0 <= pod.paso < cfg.paso0 + T and not pod.aplicado:
             raise RuntimeError(f"el POD sobre {pod.fuente} en el paso {pod.paso} no llegó a aplicarse")
-    return Resultado(observables=obs, anclas=anclas, coste=campo.coste.copy(), t_div=campo.t_div.copy(),
-                     fallos=fallos, pasos_verificados=pasos_verificados, segundos=segundos,
-                     estados=estados, particulas=particulas, gemelos=cfg.gemelos)
+    coste = campo.coste
+    t_div = campo.t_div
+    return Resultado(observables=obs, anclas=anclas, coste=np.array(coste, copy=True),
+                     t_div=np.array(t_div, copy=True), fallos=sim.fallos,
+                     pasos_verificados=sim.pasos_verificados, segundos=segundos, estados=estados,
+                     particulas=sim.particulas, gemelos=sim.A > 1, coste_brazos=campo.coste_brazos.copy(),
+                     t_div_brazos=campo.t_div_brazos.copy(), estado_final=x)

@@ -13,7 +13,7 @@
 - [x] P4. `clinamen/contingencia/estimadores.py` (M8 genérico, solo trayectorias): committor por regresión
       logística con validación cruzada, disparos, presupuesto ρ̂, κ̂ sobre trayectorias condicionadas a B, rastro
       por Donsker-Varadhan, espectro de tiempos implícitos, dos regímenes por vector propio. Tests contra exactos.
-- [ ] P5. Motor: topología por lista de aristas; varios brazos (un POD por brazo); estado inicial dado; API paso a
+- [x] P5. Motor: topología por lista de aristas; varios brazos (un POD por brazo); estado inicial dado; API paso a
       paso con reindexado (filtro de partículas); parámetros por columna; modelo de observación en la ontología.
       F0 debe seguir pasando (tests y `clinamen puerta-f0`).
 - [ ] P6. Mundo sintético `sintetico_f1` (ontología + mecanismos).
@@ -49,6 +49,19 @@ Lecciones (ya incorporadas al código):
 
 - 910001: juguetes (cada juguete con esa semilla). 910002: cobertura. 910003: POD plantado.
 
+## P5 hecho (motor)
+
+- `motor.Simulacion`: API paso a paso (`paso()`, `reindexar(idx)`), `estado0` + `paso0` absolutos,
+  parámetros por partícula (1, N) repetidos por brazo, `ramas` = varios brazos (brazo j: flujo propio 2j−1,
+  intervención 2j). `simular()` es un envoltorio. `Resultado.coste_brazos`, `t_div_brazos`, `estado_final`.
+- Topología `lista` (entidades + aristas; aisladas permitidas). `Observacion` en la ontología (variable,
+  entidades, familia normal|lognormal, sd = nombre de parámetro, fraccion_huecos).
+- La puerta F0 sigue superándose (comprobado tras P5). La huella de ontología de banco_f0 cambió por el
+  esquema (campos nuevos de topología); la dinámica no.
+
 ## Siguiente paso concreto
 
-P5 (motor).
+P6: mundo `sintetico_f1` en `src/clinamen/mundos/sintetico_f1/` (ontología YAML + mecanismos + modelo.py) y
+registrarlo en `clinamen/mundos/__init__.py`. Diseño previsto: 6 entidades, aristas (0,1),(1,2),(3,4),(4,5);
+capacidad c_e en doble pozo con ruido gaussiano inclinable, choque −J al morir el gobernante, deriva por rasgo
+del gobernante, acoplamiento k con vecinos; población observada (lognormal, huecos); parámetros a inferir 2–3.
