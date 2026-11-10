@@ -71,6 +71,18 @@ def _puerta_f2a(args):
     sys.exit(0 if res["supera_puerta"] else 1)
 
 
+def _puerta_f2a_cliopatria(args):
+    from .ingesta.cliopatria import cargar_panel_cliopatria
+    from .puerta.f2a import evaluar_puerta_f2a
+    from pathlib import Path
+    raiz = Path(__file__).resolve().parents[2]
+    res = evaluar_puerta_f2a(args.salida or raiz / "informes" / "F2a_cliopatria", prerregistro="F2a_cliopatria",
+                             panel=cargar_panel_cliopatria(), var="Terr", observables=("Terr",), correcciones=True)
+    if args.posthoc_seshat:
+        evaluar_puerta_f2a(raiz / "informes" / "F2a_iter2_seshat_POSTHOC", correcciones=True)
+    sys.exit(0 if res["supera_puerta"] else 1)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="clinamen", description="Motor de historia contrafactual (fase F0)")
     sub = ap.add_subparsers(dest="orden", required=True)
@@ -109,6 +121,11 @@ def main(argv=None):
     p2 = sub.add_parser("puerta-f2a", help="evalúa la puerta F2a: hindcast de escala social con Seshat")
     p2.add_argument("--salida", default=None)
     p2.set_defaults(f=_puerta_f2a)
+
+    p3 = sub.add_parser("puerta-f2a-cliopatria", help="iteración 2 de F2a validada con Cliopatria")
+    p3.add_argument("--salida", default=None)
+    p3.add_argument("--posthoc-seshat", action="store_true", help="además, iteración 2 sobre Seshat (post hoc)")
+    p3.set_defaults(f=_puerta_f2a_cliopatria)
 
     args = ap.parse_args(argv)
     args.f(args)

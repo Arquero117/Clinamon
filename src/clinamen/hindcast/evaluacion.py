@@ -59,9 +59,15 @@ def climatologia(panel, var, origen, m, n, rng):
 
 
 # ----------------------------------------------------------------------------- rivales y apilamiento
+MIN_CAMBIOS = 10   # regla técnica fijada antes de evaluar Cliopatria: por debajo, el ajuste no está definido
+
+
 def ajustar_rivales(panel, var, regiones, rng, hasta=None, regiones_fuera=None, correcciones=False):
+    """Ajusta R1–R3. Devuelve None si hay menos de MIN_CAMBIOS transiciones con cambio."""
     d = panel if regiones_fuera is None else panel[~panel.region.isin(regiones_fuera)]
     tr = Transiciones.desde_panel(d, var, regiones, hasta)
+    if np.sum(tr.dy != 0) < MIN_CAMBIOS:
+        return None
     return {k: C(len(regiones), correcciones).ajustar(tr, rng) for k, C in RIVALES.items()}
 
 
@@ -79,6 +85,8 @@ def pesos_apilamiento(panel, var, regiones, rng, corte, hasta_val, regiones_fuer
     destino en (corte, hasta_val], usando rivales ajustados con datos hasta `corte`."""
     mods = ajustar_rivales(panel, var, regiones, rng, hasta=corte, regiones_fuera=regiones_fuera,
                            correcciones=correcciones)
+    if mods is None:
+        return {k: 1 / 3 for k in RIVALES}
     d = panel if regiones_fuera is None else panel[~panel.region.isin(regiones_fuera)]
     d = d.sort_values(["NGA", "anio"])
     sig = d.groupby("NGA")[var].shift(-1)
@@ -121,6 +129,8 @@ def hindcast_origen(panel, origen, regiones, rng, n=2000, observables=OBSERVABLE
         w = pesos_apilamiento(panel, var, regiones, rng, corte=origen - 500, hasta_val=origen,
                               correcciones=correcciones)
         mods = ajustar_rivales(panel, var, regiones, rng, hasta=origen, correcciones=correcciones)
+        if mods is None:
+            continue
         pr = {k: m.predecir(y0, reg0, len(PASOS), n, rng) for k, m in mods.items()}
         metodos = {"apilado": mezcla(pr, w, rng), **pr,
                    "persistencia": persistencia(panel, var, y0, n, rng, hasta=origen),
@@ -149,6 +159,8 @@ def hindcast_region_fuera(panel, region, regiones, rng, var="SPC", n=2000, corre
     w = pesos_apilamiento(panel, var, regiones, rng, corte=amax - 500, hasta_val=amax, regiones_fuera=fuera,
                           correcciones=correcciones)
     mods = ajustar_rivales(panel, var, regiones, rng, regiones_fuera=fuera, correcciones=correcciones)
+    if mods is None:
+        return pd.DataFrame()
     d = panel[panel.region == region].sort_values(["NGA", "anio"])
     sig = d.groupby("NGA")[var].shift(-1)
     ok = (d.groupby("NGA")["anio"].shift(-1) - d.anio == PASO) & sig.notna()
