@@ -91,8 +91,15 @@ gobernante 0; nulos = entidades 3–5. ~10 s por mundo en un núcleo.
 P-valores de nulos ~uniformes (KS p 0.28/0.53; sd z 1.06). H = 10 se descartó: el efecto del choque es
 transitorio y el plantado no destacaba (decisión tomada con semillas de desarrollo, antes de la puerta).
 
+## P9 en ejecución
+
+- Código de la puerta en el commit 982a6a7. Lanzada `python -m clinamen puerta-f1 --procesos 4`
+  (≈23 min). Es reanudable: las partes van a `informes/F1/partes/*.json`; si se interrumpe, relanzar la misma
+  orden y continúa. Al terminar escribe `informes/F1/puerta_F1.{json,md}`.
+- ADR-0006 escrita (`docs/decisiones/ADR-0006-banco-canonico-y-asimilacion.md`).
+
 ## Siguiente paso concreto
 
-P9: `src/clinamen/puerta/f1.py` + orden `clinamen puerta-f1 [--procesos n]`: juguetes con semilla 910001
-(evaluar_juguete con n_ajuste=100000, n_prueba=100000, n_pod=200000), cobertura con 200 mundos de semillas
-910002000+i, plantado con 50 mundos de semillas 910003000+i; informe JSON + MD en informes/F1; ejecutar una vez.
+Leer `informes/F1/puerta_F1.md`. Si SUPERADA: escribir `docs/fases/F1.md` (resumen como F0.md), actualizar
+README y CLAUDE.md (F1 completada; F2 siguiente, congelar su puerta antes de empezar), commit + push.
+Si NO SUPERADA: NO tocar umbrales; diagnosticar, documentar, simplificar el modelo (máx. 2 iteraciones, §17.2).
