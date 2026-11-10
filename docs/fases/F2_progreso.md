@@ -49,14 +49,21 @@ y de la época.
 - Regla técnica fijada antes de evaluar Cliopatria: si un ajuste tiene < 10 transiciones con cambio, pesos
       iguales y, si el ajuste final no es posible, el origen no aporta predicciones (MIN_CAMBIOS). Verificado:
       la iteración 1 de Seshat se reproduce idéntica con el código refactorizado.
-- [ ] Q3. `puerta/f2a_cliopatria.py` + `clinamen puerta-f2a-cliopatria`; ejecutar UNA vez (semilla 930001);
+- [x] Q3. `puerta/f2a_cliopatria.py` + `clinamen puerta-f2a-cliopatria`; ejecutar UNA vez (semilla 930001);
       además, iteración 2 sobre Seshat marcada post hoc.
-- [ ] Q4. Informe, docs, commit, push.
+- [x] Q4. Informe, docs, commit, push.
+
+## Cierre de F2a: NO SUPERADA en dos iteraciones (§17.2)
+
+- Iteración 1 (Seshat): habilidad +1.9 %/+5.1 % frente a la persistencia, pero sin calibración ni transporte.
+- Iteración 2 (validación limpia con Cliopatria): calibración del 90 % correcta, pero NO gana a la persistencia
+  (−2.1 %/−5.0 %) y 6/10 grandes regiones no usadas. Post hoc en Seshat: calibración casi arreglada, ventaja
+  a 100 años ya no significativa.
+- Conclusión (§19.3): con modelos univariantes de la escala social por siglos, la señal más allá de la
+  persistencia es mínima y no se transporta. §17.2 manda simplificar el modelo, pero el modelo más simple es la
+  propia persistencia: el camino no es simplificar sino añadir información causal (F2b: mecanismos
+  multivariantes, demografía, clima, guerra, con más fuentes). Decisión de la persona.
 
 ## Siguiente paso concreto
 
-(Resuelto: la persona pidió iteración 2 validada con Cliopatria.) Seguir por Q1. Antes: (§17.2 permite dos). Propuesta: q y la escala del cambio como
-función del nivel del observable (logística en y), mismo resto del diseño. Advertencia: la iteración 2 está
-motivada por el resultado de la puerta, así que su evaluación con los mismos orígenes es en parte post hoc; se
-declarará así y se añadirá como control un prerregistro de datos nuevos (p. ej. Cliopatria) si se quiere una
-prueba limpia.
+Esperar decisión de la persona sobre F2b (ver arriba).

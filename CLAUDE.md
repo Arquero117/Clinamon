@@ -38,9 +38,9 @@ Responde en español. Prefiere lo pequeño y verificable a lo grande y vistoso.
 - **F0 Cimientos:** completada; puerta superada (`informes/F0/puerta_F0.md`, `docs/fases/F0.md`).
 - **F1 Banco canónico y mundo sintético:** completada; puerta superada en la iteración 3
   (`informes/F1/puerta_F1.md`, `docs/fases/F1.md`, historial en `docs/fases/F1_progreso.md`).
-- **F2 Mecanismos y hindcast:** EN CURSO, tramo F2a (hindcast de escala social con Seshat Equinox). Puerta
-  aprobada y congelada en `prerregistro/F2a_puerta.yaml` (+ sha256). Progreso: `docs/fases/F2_progreso.md`.
-  Regla: en desarrollo solo orígenes −6000…−3500; nunca mirar puntuaciones de la puerta antes de la evaluación.
+- **F2 Mecanismos y hindcast:** tramo F2a CERRADO SIN SUPERAR la puerta tras dos iteraciones (Seshat; validación
+  limpia con Cliopatria). Informes en `informes/F2a*`, resumen en `docs/fases/F2_progreso.md`. Siguiente: F2b
+  (mecanismos multivariantes con más fuentes) cuando la persona lo decida; congelar su puerta antes.
 - La puerta no se mueve (§17.2). Si F1 no la supera tras dos iteraciones, se simplifica el modelo.
 - Las **semillas de puerta** del prerregistro no se usan nunca durante el desarrollo: solo en la evaluación final.
 
