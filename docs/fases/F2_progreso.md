@@ -12,7 +12,7 @@
       (MLE penalizado), incertidumbre paramétrica por Laplace; predictivas por simulación; apilamiento.
 - [x] P4. Referencias nulas: persistencia, tendencia lineal 500 años, climatología.
 - [x] P5. Hindcast por origen móvil y por región dejada fuera; Chapman-Kolmogorov; inevitabilidad.
-- [ ] P6. `clinamen puerta-f2a` con la semilla 920001; informe; docs; commit; push.
+- [x] P6. `clinamen puerta-f2a` con la semilla 920001; informe; docs; commit; push.
 
 ## Regla anti-sobreajuste del constructor
 
@@ -32,6 +32,17 @@ se fijan antes.
 - Pruebas: sin fuga (alterar el futuro no cambia ajustes ni referencias) y Chapman-Kolmogorov con control
   positivo (Markov) y negativo (memoria).
 
+## Iteración 1 de la puerta F2a: NO SUPERADA (informes/F2a/puerta_F2a.md)
+
+Pasa: habilidad frente a la persistencia (+1.9 % a 100 años, +5.1 % a 200, cotas > 0), cobertura estratificada,
+inevitabilidad, Chapman-Kolmogorov (84 %), cómputo. Falla: cobertura agregada (c50 ≈ 0.28, c90 0.79–0.88) y
+civilización no usada (5/10). Diagnóstico: q constante; el cambio de polity depende fuertemente del nivel de SPC
+y de la época.
+
 ## Siguiente paso concreto
 
-P6: ejecutar `python -m clinamen puerta-f2a` UNA vez (semilla 920001), escribir informe y docs.
+Decidir con la persona si se hace la iteración 2 (§17.2 permite dos). Propuesta: q y la escala del cambio como
+función del nivel del observable (logística en y), mismo resto del diseño. Advertencia: la iteración 2 está
+motivada por el resultado de la puerta, así que su evaluación con los mismos orígenes es en parte post hoc; se
+declarará así y se añadirá como control un prerregistro de datos nuevos (p. ej. Cliopatria) si se quiere una
+prueba limpia.
