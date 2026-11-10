@@ -350,3 +350,32 @@ def dos_regimenes(P: np.ndarray):
     """Asigna cada microestado a uno de dos conjuntos metaestables por el signo del segundo vector propio."""
     _, _, vec = tiempos_implicitos(P, 1, 2)
     return (vec[:, 1] > 0).astype(int)
+
+
+# ---------------------------------------------------------------------- committor saturado
+class CommittorHistograma:
+    """ĥ_t(x) = frecuencia de B entre las trayectorias que visitan la celda de x en t (regresión saturada).
+
+    Es el estimador más simple: sin sesgo de suavizado, con error típico binomial honesto
+    sqrt(ĥ (1 − ĥ) / visitas). Se acumula por tramos, de modo que admite millones de trayectorias.
+    Las celdas son los valores distintos del rasgo (estados discretos) o, si se dan, intervalos fijos.
+    """
+
+    def __init__(self, T: int, celdas: int):
+        self.visitas = np.zeros((T, celdas))
+        self.aciertos = np.zeros((T, celdas))
+
+    def acumular(self, celda_t: np.ndarray, desenlace: np.ndarray) -> None:
+        """celda_t: (T+1, n) índices de celda; desenlace: (n,) booleano."""
+        y = desenlace.astype(np.float64)
+        for t in range(self.visitas.shape[0]):
+            self.visitas[t] += np.bincount(celda_t[t], minlength=self.visitas.shape[1])
+            self.aciertos[t] += np.bincount(celda_t[t], weights=y, minlength=self.visitas.shape[1])
+
+    def __call__(self, t: int, celdas: np.ndarray, error_tipico: bool = False):
+        v = self.visitas[t][celdas]
+        h = np.where(v > 0, self.aciertos[t][celdas] / np.maximum(v, 1), np.nan)
+        if not error_tipico:
+            return h
+        se = np.where(v > 0, np.sqrt(np.maximum(h * (1 - h), 0.25 / np.maximum(v, 1)) / np.maximum(v, 1)), np.inf)
+        return h, se

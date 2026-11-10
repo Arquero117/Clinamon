@@ -1,0 +1,10 @@
+doble_pozo_gau s910011 True  h ratio-err 0.0213 True | T2 -0.0008±0.0012 True | T3 True L1 0.043 | L True
+doble_pozo_gau s910021 True  h ratio-err 0.0108 True | T2 +0.0019±0.0012 True | T3 True L1 0.034 | L True
+doble_pozo_est s910011 True  h ratio-err 0.0493 True | T2 -0.0012±0.0005 True | T3 True L1 0.067 | L True
+doble_pozo_est s910021 True  h ratio-err 0.0124 True | T2 -0.0010±0.0004 True | T3 True L1 0.087 | L True
+urna_polya     s910011 False h ratio-err 0.0283 False | T2 +0.0004±0.0008 True | T3 True L1 0.021 | L True
+urna_polya     s910021 True  h ratio-err 0.0198 True | T2 +0.0013±0.0008 True | T3 True L1 0.021 | L True
+lento_rapido   s910011 True  h ratio-err 0.0373 True | T2 -0.0007±0.0007 True | T3 True L1 0.029 | L True
+lento_rapido   s910021 False h ratio-err 0.0545 False | T2 +0.0001±0.0010 True | T3 True L1 0.033 | L True
+doble_pozo_der s910011 True  h ratio-err 0.0127 True | T2 +0.0008±0.0011 True | T3 True L1 0.019 | L True
+doble_pozo_der s910021 True  h ratio-err 0.0109 True | T2 +0.0011±0.0010 True | T3 True L1 0.025 | L True

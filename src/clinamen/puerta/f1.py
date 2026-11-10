@@ -20,14 +20,16 @@ import numpy as np
 import yaml
 
 from .. import __version__
-from ..contingencia.banco import evaluar_juguete
+from ..contingencia.banco import committor_en_rejilla, evaluar_juguete
 from ..contingencia.juguetes import JUGUETES
 from ..motor.salida import commit_git
 from ..validacion.sintetico import ConfigExperimento, experimento, resumir
 
 RAIZ = Path(__file__).resolve().parents[3]
 TAMANOS_JUGUETES = {"n_ajuste": 60000, "n_prueba": 40000, "n_pod": 200000, "nodos": (12, 32),
-                    "lotes_t2": 16, "n_lote_t2": 10000}
+                    "lotes_t2": 16, "n_lote_t2": 10000,
+                    "n_committor": 16_000_000}
+SEMILLAS_ROBUSTEZ = (910011, 910021)   # exigencia adicional del constructor (iteración 2), no del prerregistro
 
 
 def _un_hilo():
@@ -49,7 +51,11 @@ def _tarea(tipo: str, clave, semilla: int) -> dict:
     if tipo == "juguete":
         t = TAMANOS_JUGUETES
         return evaluar_juguete(clave, t["n_ajuste"], t["n_prueba"], t["n_pod"], semilla, t["nodos"],
-                               lotes_t2=t["lotes_t2"], n_lote_t2=t["n_lote_t2"])
+                               lotes_t2=t["lotes_t2"], n_lote_t2=t["n_lote_t2"], n_committor=t["n_committor"])
+    if tipo == "robustez":
+        nombre = clave.split("@")[0]
+        filas = committor_en_rejilla(JUGUETES[nombre](), TAMANOS_JUGUETES["n_committor"], semilla)
+        return {"juguete": nombre, "semilla": semilla, "instantes": filas, "supera": all(f["supera"] for f in filas)}
     return experimento(semilla, ConfigExperimento())
 
 
@@ -73,6 +79,7 @@ def evaluar_puerta_f1(salida: str | Path = RAIZ / "informes" / "F1", procesos: i
     partes.mkdir(parents=True, exist_ok=True)
     n_cob, n_pla = pu["cobertura"]["replicas_min"], pu["pod_plantado"]["mundos_min"]
     tareas = [("juguete", k, semillas[0]) for k in JUGUETES]
+    tareas += [("robustez", f"{k}@{s}", s) for k in JUGUETES for s in SEMILLAS_ROBUSTEZ]
     tareas += [("cobertura", i, semillas[1] * 1000 + i) for i in range(n_cob)]
     tareas += [("plantado", i, semillas[2] * 1000 + i) for i in range(n_pla)]
 
@@ -86,7 +93,7 @@ def evaluar_puerta_f1(salida: str | Path = RAIZ / "informes" / "F1", procesos: i
         experimento(12345, ConfigExperimento())          # semilla de desarrollo: solo para medir
         seg_mundo = time.perf_counter() - t0
         n_m = sum(t[0] != "juguete" for t in pendientes)
-        est = (n_m * seg_mundo + 600.0 * sum(t[0] == "juguete" for t in pendientes)) / procesos
+        est = (n_m * seg_mundo + 900.0 * sum(t[0] != "cobertura" and t[0] != "plantado" for t in pendientes)) / procesos
         informar(f"[puerta F1] ~{seg_mundo:.0f} s por mundo; duración estimada {est / 60:.0f} min con {procesos} procesos")
         if est > max_horas * 3600:
             raise RuntimeError(f"duración estimada {est / 3600:.1f} h supera el máximo de {max_horas} h")
@@ -108,6 +115,7 @@ def evaluar_puerta_f1(salida: str | Path = RAIZ / "informes" / "F1", procesos: i
     jug = {k: res[("juguete", k, semillas[0])] for k in JUGUETES}
     cob = [res[("cobertura", i, semillas[1] * 1000 + i)] for i in range(n_cob)]
     pla = [res[("plantado", i, semillas[2] * 1000 + i)] for i in range(n_pla)]
+    rob = [res[("robustez", f"{k}@{s}", s)] for k in JUGUETES for s in SEMILLAS_ROBUSTEZ]
     rc, rp = resumir(cob), resumir(pla)
     lam_toys = [j["teorema_1"]["supera_cota"] for j in jug.values()]
     lam_cands = [c["lambda"] - 2 * c["error_tipico_lambda"] <= 1.0 for r in cob + pla for c in r["candidatos"]]
@@ -133,7 +141,9 @@ def evaluar_puerta_f1(salida: str | Path = RAIZ / "informes" / "F1", procesos: i
                         and rp["fdr"] <= pu["pod_plantado"]["fdr_max"],
         "computo": crit["horas_cpu_8_nucleos"] <= pu["computo"]["horas_max_cpu_8_nucleos"],
     }
-    out = {"fase": "F1", "prerregistro_sha256": sha, "version": __version__, "commit": commit_git(),
+    regla = all(f["regla_tamano_cumplida"] for j in jug.values() for f in j["committor"]["instantes"])
+    out = {"robustez_committor": rob, "supera_robustez": all(r["supera"] for r in rob),
+           "regla_tamano_committor_cumplida": regla, "fase": "F1", "prerregistro_sha256": sha, "version": __version__, "commit": commit_git(),
            "entorno": {"python": platform.python_version(), "maquina": platform.machine(), "procesos": procesos},
            "tamanos_juguetes": TAMANOS_JUGUETES, "config_mundos": cob[0]["config"],
            "juguetes": jug, "resumen_cobertura": rc, "resumen_plantado": rp, "criterios": crit,
@@ -159,7 +169,15 @@ def informe_markdown(o: dict) -> str:
          f"- Código: versión {o['version']}, commit `{o['commit']}`. Semillas de puerta usadas por primera vez en esta evaluación.",
          f"- Cómputo: {o['segundos_cpu'] / 3600:.2f} h de CPU en total ({o['criterios']['horas_cpu_8_nucleos']:.2f} h con 8 núcleos); "
          f"{o['segundos_reloj'] / 60:.0f} min de reloj con {o['entorno']['procesos']} procesos.", "",
-         f"## Resultado: {'PUERTA SUPERADA' if o['supera_puerta'] else 'PUERTA NO SUPERADA'}", "",
+         f"## Resultado: {'PUERTA SUPERADA' if o['supera_puerta'] else 'PUERTA NO SUPERADA'} (iteración 3)", "",
+         f"- Robustez del committor con semillas nuevas {list(SEMILLAS_ROBUSTEZ)} (exigencia adicional del constructor): "
+         f"{'superada' if o['supera_robustez'] else 'NO superada'}.",
+         f"- Regla prerregistrada de tamaños de Monte Carlo en el committor (e.t. ≤ 0.004): "
+         f"{'cumplida' if o['regla_tamano_committor_cumplida'] else 'NO cumplida en algún estado (se aplica la tolerancia alternativa de 3 e.t.)'}.", "",
+         "## Historial de iteraciones (§17.2: la puerta no se movió)", "",
+         "1. Iteración 1 (`puerta_F1_iteracion1.md`): no superada. Committor por regresión logística con 12 nodos: error 0.041 en el doble pozo estable cerca del horizonte, donde h es casi un escalón.",
+         "2. Iteración 2 (`puerta_F1_iteracion2.md`, `robustez_iteracion2.txt`): no superada. Nodos por validación cruzada (12 o 32): fallan el doble pozo gaussiano y, en robustez, la urna y el lento-rápido. Causa raíz: los tamaños de Monte Carlo incumplían la regla prerregistrada (e.t. hasta 0.02 frente a ≤ 0.004) y el error típico del spline no recoge su sesgo de suavizado.",
+         "3. Iteración 3 (este informe): simplificación del estimador del committor al saturado (frecuencia por estado, error típico binomial) con 16 millones de trayectorias por juguete para cumplir la regla de tamaños. Teoremas 2 y 3 y Λ, sin cambios desde la iteración 2. Los mundos sintéticos no usan el committor: sus resultados son los de la iteración 1 (mismo código).", "",
          "## Juguetes (semilla 910001)", "",
          "| Juguete | P(B) | ĥ: error máx. / e.t. máx. | Teorema 2: Σρ̂ − M₀(1−M₀) | Teorema 3: Σκ̂ + log P̂(B) ; L1 | Λ̂ ± e.t. (exacto) |",
          "| --- | --- | --- | --- | --- | --- |"]

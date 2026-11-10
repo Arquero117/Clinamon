@@ -63,8 +63,35 @@ def teorema_2_por_lotes(c: CadenaFinita, lotes: int, n_lote: int, semilla: int, 
             "error_tipico": float(difs.std(ddof=1) / np.sqrt(lotes)), "lotes": lotes, "n_lote": n_lote}
 
 
+def committor_en_rejilla(c: CadenaFinita, n: int, semilla: int, instantes=(0.5, 0.75, 0.9), tramo: int = 200000):
+    """Criterio del committor con el estimador saturado (frecuencia por estado), acumulado por tramos de
+    trayectorias independientes (flujo 9). Devuelve las filas por instante y el máximo error típico."""
+    h = c.committor()
+    p = c.marginales()
+    est = es.CommittorHistograma(c.T, c.n)
+    hecho = 0
+    while hecho < n:
+        m = min(tramo, n - hecho)
+        tr = c.simular(m, semilla, id0=hecho, flujo=9)
+        est.acumular(tr, c.B[tr[-1]])
+        hecho += m
+    filas = []
+    for f in instantes:
+        t = min(int(round(f * c.T)), c.T - 1)
+        idx = rejilla_evaluacion(p[t], c.rasgos)
+        hh, se = est(t, idx, error_tipico=True)
+        err = np.abs(hh - h[t][idx])
+        tol = np.maximum(0.02, 3 * se)
+        filas.append({"t": t, "n_estados": int(idx.size), "error_max": float(np.nanmax(err)),
+                      "error_tipico_max": float(np.max(se)),
+                      "regla_tamano_cumplida": bool(np.max(se) <= 0.004),
+                      "supera": bool(np.all(err <= tol)) and idx.size >= 20})
+    return filas
+
+
 def evaluar_juguete(nombre: str, n_ajuste: int, n_prueba: int, n_pod: int, semilla: int, nodos=(12, 32),
-                    instantes=(0.5, 0.75, 0.9), lotes_t2: int = 16, n_lote_t2: int = 10000) -> dict:
+                    instantes=(0.5, 0.75, 0.9), lotes_t2: int = 16, n_lote_t2: int = 10000,
+                    n_committor: int | None = None) -> dict:
     c = JUGUETES[nombre]()
     h = c.committor()
     p = c.marginales()
@@ -78,8 +105,12 @@ def evaluar_juguete(nombre: str, n_ajuste: int, n_prueba: int, n_pod: int, semil
            "P_B_exacta": float(p[0] @ h[0])}
 
     # committor en rejilla
-    filas = []
-    for f in instantes:
+    if n_committor is not None:
+        filas = committor_en_rejilla(c, n_committor, semilla, instantes)
+        out["committor"] = {"estimador": "saturado (frecuencia por estado)", "n_trayectorias": n_committor,
+                            "instantes": filas, "supera": all(x["supera"] for x in filas)}
+    filas = [] if n_committor is None else None
+    for f in (instantes if filas is not None else ()):
         t = int(round(f * c.T))
         t = min(t, c.T - 1)
         idx = rejilla_evaluacion(p[t], c.rasgos)
@@ -88,7 +119,9 @@ def evaluar_juguete(nombre: str, n_ajuste: int, n_prueba: int, n_pod: int, semil
         tol = np.maximum(0.02, 3 * se)
         filas.append({"t": t, "n_estados": int(idx.size), "error_max": float(err.max()),
                       "error_tipico_max": float(se.max()), "supera": bool(np.all(err <= tol)) and idx.size >= 20})
-    out["committor"] = {"instantes": filas, "supera": all(x["supera"] for x in filas)}
+    if filas is not None:
+        out["committor"] = {"estimador": "regresión logística con B-splines", "instantes": filas,
+                            "supera": all(x["supera"] for x in filas)}
 
     # Teorema 2
     t2 = teorema_2_por_lotes(c, lotes_t2, n_lote_t2, semilla, nodos)

@@ -2,7 +2,7 @@
   "fase": "F1",
   "prerregistro_sha256": "7f9e9e3fcccb3f028b6226951c37c3507aa0d717c558fe5c01a74e102d48cafc",
   "version": "0.1.0",
-  "commit": "643189613c79f72156153d9fde7b0445bc96adb5",
+  "commit": "8b46f42da2a69c35c8f492d50b8dbad53bb2beb4",
   "entorno": {
     "python": "3.13.18",
     "maquina": "x86_64",
@@ -12,7 +12,10 @@
     "n_ajuste": 60000,
     "n_prueba": 40000,
     "n_pod": 200000,
-    "nodos": 12,
+    "nodos": [
+      12,
+      32
+    ],
     "lotes_t2": 16,
     "n_lote_t2": 10000
   },
@@ -124,16 +127,19 @@
       "n_ajuste": 60000,
       "n_prueba": 40000,
       "n_pod": 200000,
-      "nodos": 12,
+      "nodos": [
+        12,
+        32
+      ],
       "P_B_exacta": 0.28365362420424656,
       "committor": {
         "instantes": [
           {
             "t": 30,
             "n_estados": 62,
-            "error_max": 0.007066679961251987,
-            "error_tipico_max": 0.007412721017056393,
-            "supera": true
+            "error_max": 0.034139053793654006,
+            "error_tipico_max": 0.011969243610946702,
+            "supera": false
           },
           {
             "t": 45,
@@ -145,29 +151,29 @@
           {
             "t": 54,
             "n_estados": 69,
-            "error_max": 0.0082632547681466,
-            "error_tipico_max": 0.0070559293877150014,
+            "error_max": 0.01426216474344727,
+            "error_tipico_max": 0.010984993388567855,
             "supera": true
           }
         ],
-        "supera": true
+        "supera": false
       },
       "teorema_2": {
-        "suma_rho": 0.20273831249743915,
-        "diferencia": 0.00032710874743915874,
-        "error_tipico": 0.000989354411014081,
+        "suma_rho": 0.20270533685379327,
+        "diferencia": 0.0002941331037933214,
+        "error_tipico": 0.0009539620108128179,
         "lotes": 16,
         "n_lote": 10000,
         "exacto": 0.20319424568004263,
         "supera": true
       },
       "teorema_3": {
-        "suma_kappa": 1.2616249633754442,
+        "suma_kappa": 1.2616249633754453,
         "menos_log_PB": 1.265670918796152,
         "exacto": 1.2600014182622894,
-        "diferencia": -0.004045955420707736,
-        "error_tipico": 0.008677522727566299,
-        "error_L1_relativo": 0.01686763860926742,
+        "diferencia": -0.004045955420706626,
+        "error_tipico": 0.008677522727566304,
+        "error_L1_relativo": 0.017166575338183335,
         "supera": true
       },
       "teorema_1": {
@@ -182,15 +188,18 @@
         "supera_tolerancia": true,
         "supera": true
       },
-      "supera": true,
-      "_segundos": 97.61010053899963
+      "supera": false,
+      "_segundos": 106.57483263799986
     },
     "doble_pozo_estable": {
       "juguete": "doble_pozo_estable",
       "n_ajuste": 60000,
       "n_prueba": 40000,
       "n_pod": 200000,
-      "nodos": 12,
+      "nodos": [
+        12,
+        32
+      ],
       "P_B_exacta": 0.059847991625061096,
       "committor": {
         "instantes": [
@@ -204,36 +213,36 @@
           {
             "t": 45,
             "n_estados": 30,
-            "error_max": 0.012354737306799951,
-            "error_tipico_max": 0.01067870461068305,
+            "error_max": 0.012354737306799868,
+            "error_tipico_max": 0.010678704610465453,
             "supera": true
           },
           {
             "t": 54,
             "n_estados": 39,
-            "error_max": 0.04097345129327018,
-            "error_tipico_max": 0.01836938421863569,
+            "error_max": 0.040973451293270624,
+            "error_tipico_max": 0.018369384218599034,
             "supera": false
           }
         ],
         "supera": false
       },
       "teorema_2": {
-        "suma_rho": 0.05495661782191122,
-        "diferencia": -0.0004585571780887864,
-        "error_tipico": 0.0004671971608861663,
+        "suma_rho": 0.054767325273049394,
+        "diferencia": -0.0006478497269506059,
+        "error_tipico": 0.00045503377465736536,
         "lotes": 16,
         "n_lote": 10000,
         "exacto": 0.056266209523507714,
         "supera": true
       },
       "teorema_3": {
-        "suma_kappa": 2.8263495115376385,
+        "suma_kappa": 2.826349511537638,
         "menos_log_PB": 2.8075943314385965,
         "exacto": 2.8159474043488664,
-        "diferencia": 0.01875518009904198,
-        "error_tipico": 0.022696185511694007,
-        "error_L1_relativo": 0.043126493738101145,
+        "diferencia": 0.018755180099041535,
+        "error_tipico": 0.022696185511693997,
+        "error_L1_relativo": 0.043126493738101124,
         "supera": true
       },
       "teorema_1": {
@@ -249,14 +258,17 @@
         "supera": true
       },
       "supera": false,
-      "_segundos": 98.96892300899981
+      "_segundos": 116.73480079299952
     },
     "urna_polya": {
       "juguete": "urna_polya",
       "n_ajuste": 60000,
       "n_prueba": 40000,
       "n_pod": 200000,
-      "nodos": 12,
+      "nodos": [
+        12,
+        32
+      ],
       "P_B_exacta": 0.49382716049382724,
       "committor": {
         "instantes": [
@@ -285,44 +297,47 @@
         "supera": true
       },
       "teorema_2": {
-        "suma_rho": 0.2522397194592357,
-        "diferencia": 0.002316748834236106,
-        "error_tipico": 0.0007787831443909579,
+        "suma_rho": 0.2518370490762326,
+        "diferencia": 0.0019140784512325856,
+        "error_tipico": 0.0007717128881769192,
         "lotes": 16,
         "n_lote": 10000,
         "exacto": 0.24996189605243102,
         "supera": true
       },
       "teorema_3": {
-        "suma_kappa": 0.706097231116694,
+        "suma_kappa": 0.706097231116691,
         "menos_log_PB": 0.7085146576910671,
         "exacto": 0.7055697005585023,
-        "diferencia": -0.0024174265743731604,
-        "error_tipico": 0.005863679565074271,
-        "error_L1_relativo": 0.01596973620033472,
+        "diferencia": -0.002417426574376158,
+        "error_tipico": 0.005863679565074254,
+        "error_L1_relativo": 0.015967551794564203,
         "supera": true
       },
       "teorema_1": {
         "coste_exacto": 0.6931471805599453,
         "coste_estimado": 0.6931471805599451,
         "rastro_exacto": 0.1995095026526194,
-        "rastro_dv": 0.19938120718436989,
+        "rastro_dv": 0.19938120718437008,
         "lambda_exacta": 0.28783137008715753,
-        "lambda_estimada": 0.28764627885134547,
-        "error_tipico_lambda": 0.0035020572410491705,
+        "lambda_estimada": 0.2876462788513458,
+        "error_tipico_lambda": 0.0035020572410491696,
         "supera_cota": true,
         "supera_tolerancia": true,
         "supera": true
       },
       "supera": true,
-      "_segundos": 152.37619854900004
+      "_segundos": 194.56969101200048
     },
     "lento_rapido": {
       "juguete": "lento_rapido",
       "n_ajuste": 60000,
       "n_prueba": 40000,
       "n_pod": 200000,
-      "nodos": 12,
+      "nodos": [
+        12,
+        32
+      ],
       "P_B_exacta": 0.130072680729034,
       "committor": {
         "instantes": [
@@ -337,7 +352,7 @@
             "t": 112,
             "n_estados": 103,
             "error_max": 0.015160056967275626,
-            "error_tipico_max": 0.01947803411185113,
+            "error_tipico_max": 0.019478034111852862,
             "supera": true
           },
           {
@@ -351,21 +366,21 @@
         "supera": true
       },
       "teorema_2": {
-        "suma_rho": 0.11254742933897638,
-        "diferencia": -0.0004470744110236669,
-        "error_tipico": 0.0007671172786739946,
+        "suma_rho": 0.11254017159196072,
+        "diferencia": -0.00045433215803935764,
+        "error_tipico": 0.000742921167108272,
         "lotes": 16,
         "n_lote": 10000,
         "exacto": 0.11315377845699678,
         "supera": true
       },
       "teorema_3": {
-        "suma_kappa": 2.0370611084866623,
+        "suma_kappa": 2.0370611084866628,
         "menos_log_PB": 2.057875763765275,
         "exacto": 2.0396619022239344,
-        "diferencia": -0.020814655278612815,
-        "error_tipico": 0.014467067307655273,
-        "error_L1_relativo": 0.041287681226351826,
+        "diferencia": -0.02081465527861237,
+        "error_tipico": 0.014467067307655325,
+        "error_L1_relativo": 0.0412876812263528,
         "supera": true
       },
       "teorema_1": {
@@ -381,22 +396,25 @@
         "supera": true
       },
       "supera": true,
-      "_segundos": 1548.4104678540002
+      "_segundos": 1062.8589239030007
     },
     "doble_pozo_deriva": {
       "juguete": "doble_pozo_deriva",
       "n_ajuste": 60000,
       "n_prueba": 40000,
       "n_pod": 200000,
-      "nodos": 12,
+      "nodos": [
+        12,
+        32
+      ],
       "P_B_exacta": 0.44357691372240865,
       "committor": {
         "instantes": [
           {
             "t": 40,
             "n_estados": 31,
-            "error_max": 0.006366924438874322,
-            "error_tipico_max": 0.006385367412995967,
+            "error_max": 0.011623857085290124,
+            "error_tipico_max": 0.009821238023311136,
             "supera": true
           },
           {
@@ -417,21 +435,21 @@
         "supera": true
       },
       "teorema_2": {
-        "suma_rho": 0.24604274689435066,
-        "diferencia": -0.0007875481056493217,
-        "error_tipico": 0.0010030220100054016,
+        "suma_rho": 0.24616267006566106,
+        "diferencia": -0.0006676249343390509,
+        "error_tipico": 0.000978194535970554,
         "lotes": 16,
         "n_lote": 10000,
         "exacto": 0.24681643533491152,
         "supera": true
       },
       "teorema_3": {
-        "suma_kappa": 0.8077903851885605,
+        "suma_kappa": 0.8077903851885604,
         "menos_log_PB": 0.8168414029062763,
         "exacto": 0.8128840678665021,
-        "diferencia": -0.00905101771771577,
-        "error_tipico": 0.0062100097146752156,
-        "error_L1_relativo": 0.027041387792070538,
+        "diferencia": -0.009051017717715881,
+        "error_tipico": 0.006210009714675225,
+        "error_L1_relativo": 0.027443382631239327,
         "supera": true
       },
       "teorema_1": {
@@ -447,7 +465,7 @@
         "supera": true
       },
       "supera": true,
-      "_segundos": 118.26746486100001
+      "_segundos": 170.0768709519998
     }
   },
   "resumen_cobertura": {
@@ -470,7 +488,7 @@
   },
   "criterios": {
     "committor": {
-      "doble_pozo_gaussiano": true,
+      "doble_pozo_gaussiano": false,
       "doble_pozo_estable": false,
       "urna_polya": true,
       "lento_rapido": true,
@@ -501,7 +519,7 @@
     "cobertura": 0.925,
     "recuperacion_top3": 0.94,
     "fdr": 0.023,
-    "horas_cpu_8_nucleos": 0.20960857470024313
+    "horas_cpu_8_nucleos": 0.1969412818004515
   },
   "supera": {
     "committor": false,
@@ -513,6 +531,6 @@
     "computo": true
   },
   "supera_puerta": false,
-  "segundos_reloj": 1550.1959917959998,
-  "segundos_cpu": 6036.726951367003
+  "segundos_reloj": 1063.992885139999,
+  "segundos_cpu": 5671.908915853003
 }
