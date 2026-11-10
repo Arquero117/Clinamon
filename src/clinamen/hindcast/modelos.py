@@ -56,8 +56,27 @@ def _e(x):
 class Rival:
     nombre = ""
 
-    def __init__(self, n_regiones: int):
+    def __init__(self, n_regiones: int, correcciones: bool = False):
+        """correcciones=True es la iteración 2 de F2a (prerregistro/F2a_cliopatria.yaml): q(y) logística en el
+        nivel estandarizado z y escala del cambio s·exp(d1·z) (d1 es el último parámetro, prior N(0, 1),
+        supuesto). Con False el modelo es exactamente el de la iteración 1."""
         self.R = n_regiones
+        self.correcciones = correcciones
+
+    def _z(self, y):
+        return (y - self.zm) / self.zs
+
+    def _fs(self, th, y):
+        """Factor de escala del cambio según el nivel (1 sin correcciones)."""
+        if not self.correcciones:
+            return 1.0
+        return np.exp(np.clip(th[-1] * self._z(y), -5.0, 5.0))
+
+    def _x0c(self, x0):
+        return np.concatenate([x0, [0.0]]) if self.correcciones else x0
+
+    def _penc(self, th):
+        return 0.5 * th[-1] ** 2 if self.correcciones else 0.0
 
     # -- interfaz que define cada rival
     def x0(self, tr: Transiciones) -> np.ndarray: ...
@@ -73,12 +92,13 @@ class Rival:
         y, dy, reg = tr.y[nz], tr.dy[nz], tr.region[nz]
         self.con_datos = np.zeros(self.R, bool)
         self.con_datos[np.unique(tr.region)] = True
+        self.zm, self.zs = float(np.mean(tr.y)), float(np.std(tr.y) + 1e-9)
 
         def obj(th):
-            v = -np.sum(self.logf(th, y, dy, reg)) + self.penalizacion(th)
+            v = -np.sum(self.logf(th, y, dy, reg)) + self.penalizacion(th) + self._penc(th)
             return v if np.isfinite(v) else 1e12
 
-        x0 = self.x0(tr)
+        x0 = self._x0c(self.x0(tr))
         r = optimize.minimize(obj, x0, method="L-BFGS-B")
         r = optimize.minimize(obj, r.x, method="BFGS", options={"gtol": 1e-5, "maxiter": 2000})
         self.th = r.x
@@ -93,7 +113,27 @@ class Rival:
         self.muestras_th = rng.multivariate_normal(r.x, cov, size=n_parametros)
         self.ceros = int(np.sum(~nz)), int(np.sum(nz))
         self.nll = float(r.fun)
+        if self.correcciones:
+            self._ajustar_q(tr, rng, n_parametros)
         return self
+
+    def _ajustar_q(self, tr, rng, n_parametros):
+        """q(y) = logística(c0 + c1·z): probabilidad de que el valor no cambie, por máxima verosimilitud."""
+        z, cero = self._z(tr.y), (tr.dy == 0).astype(float)
+
+        def nll(c):
+            eta = c[0] + c[1] * z
+            return -np.sum(cero * eta - np.logaddexp(0.0, eta)) + 0.5 * np.sum(c ** 2) / 100.0
+
+        r = optimize.minimize(nll, np.zeros(2), method="BFGS")
+        H = _hessiana(nll, r.x)
+        try:
+            cov = np.linalg.inv(H)
+            cov = 0.5 * (cov + cov.T)
+        except np.linalg.LinAlgError:
+            cov = np.eye(2) * 1e-6
+        self.c_q = r.x
+        self.muestras_c = rng.multivariate_normal(r.x, cov, size=n_parametros)
 
     def predecir(self, y0: np.ndarray, reg0: np.ndarray, pasos: int, n_muestras: int,
                  rng: np.random.Generator) -> np.ndarray:
@@ -106,11 +146,16 @@ class Rival:
         for i, (yi, ri) in enumerate(zip(y0, reg0)):
             sel = rng.integers(0, P, n_muestras)
             TH = self.muestras_th[sel].T                         # (p, n)
-            q = rng.beta(self.ceros[0] + 1, self.ceros[1] + 1, size=n_muestras)
+            if self.correcciones:
+                Cq = self.muestras_c[rng.integers(0, len(self.muestras_c), n_muestras)].T
+            else:
+                q = rng.beta(self.ceros[0] + 1, self.ceros[1] + 1, size=n_muestras)
             desv = None if self.con_datos[ri] else rng.normal(0.0, TAU[self.nombre], size=n_muestras)
             y = np.full(n_muestras, float(yi))
             reg = np.full(n_muestras, int(ri))
             for k in range(pasos):
+                if self.correcciones:
+                    q = special.expit(Cq[0] + Cq[1] * self._z(y))
                 cambia = rng.random(n_muestras) >= q
                 d = self.sortear(TH, y, reg, rng, desv)
                 y = np.where(cambia, np.clip(y + d, self.L - 2, self.U + 2), y)
@@ -153,7 +198,7 @@ class R2(Rival):
 
     def logf(self, th, y, dy, reg):
         mu, de, s, nu = self._p(th)
-        return stats.t.logpdf(dy, nu, loc=mu + de[reg], scale=s)
+        return stats.t.logpdf(dy, nu, loc=mu + de[reg], scale=s * self._fs(th, y))
 
     def penalizacion(self, th):
         mu, de, s, nu = self._p(th)
@@ -162,7 +207,7 @@ class R2(Rival):
     def sortear(self, th, y, reg, rng, desv):
         mu, de, s, nu = self._p(th)
         loc = mu + _regional(de, reg, desv)
-        return loc + s * rng.standard_t(nu, size=y.size)
+        return loc + s * self._fs(th, y) * rng.standard_t(nu, size=y.size)
 
 
 class R3(Rival):
@@ -178,7 +223,7 @@ class R3(Rival):
 
     def logf(self, th, y, dy, reg):
         k, m, de, s = self._p(th)
-        return stats.norm.logpdf(dy, loc=k * (m + de[reg] - y), scale=s)
+        return stats.norm.logpdf(dy, loc=k * (m + de[reg] - y), scale=s * self._fs(th, y))
 
     def penalizacion(self, th):
         return 0.5 * np.sum(self._p(th)[2] ** 2) / TAU["R3"] ** 2
@@ -186,7 +231,7 @@ class R3(Rival):
     def sortear(self, th, y, reg, rng, desv):
         k, m, de, s = self._p(th)
         nivel = m + _regional(de, reg, desv)
-        return k * (nivel - y) + s * rng.standard_normal(y.size)
+        return k * (nivel - y) + s * self._fs(th, y) * rng.standard_normal(y.size)
 
 
 class R1(Rival):
@@ -210,7 +255,7 @@ class R1(Rival):
     def logf(self, th, y, dy, reg):
         a, de, K, s, p, al, be = self._p(th)
         g = self._g(a, de, K, y, de[reg])
-        l_norm = np.log1p(-p) + stats.norm.logpdf(dy, loc=g, scale=s)
+        l_norm = np.log1p(-p) + stats.norm.logpdf(dy, loc=g, scale=s * self._fs(th, y))
         x = g - dy
         l_col = np.where(x > 0, np.log(p) + np.log(al / be) - (al + 1) * np.log1p(np.maximum(x, 0) / be), -np.inf)
         return np.logaddexp(l_norm, l_col)
@@ -230,7 +275,7 @@ class R1(Rival):
         col = rng.random(y.size) < p
         u = rng.random(y.size)
         J = be * np.expm1(-np.log(u) / al)                           # Lomax por cuantil inverso
-        return np.where(col, g - np.minimum(J, 20.0), g + s * rng.standard_normal(y.size))
+        return np.where(col, g - np.minimum(J, 20.0), g + s * self._fs(th, y) * rng.standard_normal(y.size))
 
 
 RIVALES = {"R1": R1, "R2": R2, "R3": R3}

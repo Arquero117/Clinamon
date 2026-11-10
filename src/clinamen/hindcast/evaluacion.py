@@ -59,10 +59,10 @@ def climatologia(panel, var, origen, m, n, rng):
 
 
 # ----------------------------------------------------------------------------- rivales y apilamiento
-def ajustar_rivales(panel, var, regiones, rng, hasta=None, regiones_fuera=None):
+def ajustar_rivales(panel, var, regiones, rng, hasta=None, regiones_fuera=None, correcciones=False):
     d = panel if regiones_fuera is None else panel[~panel.region.isin(regiones_fuera)]
     tr = Transiciones.desde_panel(d, var, regiones, hasta)
-    return {k: C(len(regiones)).ajustar(tr, rng) for k, C in RIVALES.items()}
+    return {k: C(len(regiones), correcciones).ajustar(tr, rng) for k, C in RIVALES.items()}
 
 
 def mezcla(preds: dict, pesos: dict, rng) -> np.ndarray:
@@ -74,10 +74,11 @@ def mezcla(preds: dict, pesos: dict, rng) -> np.ndarray:
     return np.concatenate(partes, axis=2)
 
 
-def pesos_apilamiento(panel, var, regiones, rng, corte, hasta_val, regiones_fuera=None, n=1000):
+def pesos_apilamiento(panel, var, regiones, rng, corte, hasta_val, regiones_fuera=None, n=1000, correcciones=False):
     """Pesos en el símplex (rejilla de 0.1) que minimizan el CRPS medio a un siglo de las transiciones con
     destino en (corte, hasta_val], usando rivales ajustados con datos hasta `corte`."""
-    mods = ajustar_rivales(panel, var, regiones, rng, hasta=corte, regiones_fuera=regiones_fuera)
+    mods = ajustar_rivales(panel, var, regiones, rng, hasta=corte, regiones_fuera=regiones_fuera,
+                           correcciones=correcciones)
     d = panel if regiones_fuera is None else panel[~panel.region.isin(regiones_fuera)]
     d = d.sort_values(["NGA", "anio"])
     sig = d.groupby("NGA")[var].shift(-1)
@@ -104,7 +105,7 @@ def pesos_apilamiento(panel, var, regiones, rng, corte, hasta_val, regiones_fuer
 
 
 # ----------------------------------------------------------------------------- hindcast
-def hindcast_origen(panel, origen, regiones, rng, n=2000, observables=OBSERVABLES) -> pd.DataFrame:
+def hindcast_origen(panel, origen, regiones, rng, n=2000, observables=OBSERVABLES, correcciones=False) -> pd.DataFrame:
     filas = []
     idx = {r: i for i, r in enumerate(regiones)}
     for var in observables:
@@ -117,8 +118,9 @@ def hindcast_origen(panel, origen, regiones, rng, n=2000, observables=OBSERVABLE
         if base.empty:
             continue
         y0, reg0, ngas = base[var].to_numpy(float), base.region.map(idx).to_numpy(), list(base.index)
-        w = pesos_apilamiento(panel, var, regiones, rng, corte=origen - 500, hasta_val=origen)
-        mods = ajustar_rivales(panel, var, regiones, rng, hasta=origen)
+        w = pesos_apilamiento(panel, var, regiones, rng, corte=origen - 500, hasta_val=origen,
+                              correcciones=correcciones)
+        mods = ajustar_rivales(panel, var, regiones, rng, hasta=origen, correcciones=correcciones)
         pr = {k: m.predecir(y0, reg0, len(PASOS), n, rng) for k, m in mods.items()}
         metodos = {"apilado": mezcla(pr, w, rng), **pr,
                    "persistencia": persistencia(panel, var, y0, n, rng, hasta=origen),
@@ -138,14 +140,15 @@ def hindcast_origen(panel, origen, regiones, rng, n=2000, observables=OBSERVABLE
     return pd.DataFrame(filas)
 
 
-def hindcast_region_fuera(panel, region, regiones, rng, var="SPC", n=2000) -> pd.DataFrame:
+def hindcast_region_fuera(panel, region, regiones, rng, var="SPC", n=2000, correcciones=False) -> pd.DataFrame:
     """Ajuste con todas las demás grandes regiones (todas las fechas); predicción a 100 años de la región dejada
     fuera desde cada uno de sus siglos. Pesos de apilamiento validados en los últimos 500 años del resto."""
     idx = {r: i for i, r in enumerate(regiones)}
     fuera = [region]
     amax = int(panel.anio.max())
-    w = pesos_apilamiento(panel, var, regiones, rng, corte=amax - 500, hasta_val=amax, regiones_fuera=fuera)
-    mods = ajustar_rivales(panel, var, regiones, rng, regiones_fuera=fuera)
+    w = pesos_apilamiento(panel, var, regiones, rng, corte=amax - 500, hasta_val=amax, regiones_fuera=fuera,
+                          correcciones=correcciones)
+    mods = ajustar_rivales(panel, var, regiones, rng, regiones_fuera=fuera, correcciones=correcciones)
     d = panel[panel.region == region].sort_values(["NGA", "anio"])
     sig = d.groupby("NGA")[var].shift(-1)
     ok = (d.groupby("NGA")["anio"].shift(-1) - d.anio == PASO) & sig.notna()
