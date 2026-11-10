@@ -1,0 +1,77 @@
+# Prerregistro de la puerta de la fase F1 (Banco canónico y mundo sintético).
+# Manual §17.1 y §17.2. Umbrales aprobados por la persona el 2026-11-10 (borrador de docs/fases/F0.md).
+# Se congelan ANTES de escribir código de F1. Este fichero no se edita; su sha256 está en F1_puerta.sha256.
+# Si F1 no supera la puerta tras dos iteraciones, se simplifica el modelo; la puerta no se relaja.
+
+fase: F1
+nombre: Banco canónico y mundo sintético
+modulos: [M6, M8, M10]
+fecha_congelacion: "2026-11-10"
+
+juguetes:   # §13.2: cinco sistemas con respuesta exacta para h, κ y Λ
+  - doble_pozo_gaussiano
+  - doble_pozo_estable          # ruido de saltos de cola pesada (índice α)
+  - urna_polya
+  - lento_rapido                # límite homogeneizado conocido
+  - doble_pozo_deriva           # deriva de parámetro: vuelco de tipo B
+
+puerta:
+  committor:
+    descripcion: >
+      En cada juguete, el committor de tiempo finito h(x, t) estimado por el módulo M8 a partir de simulaciones
+      (regresión probabilística sobre el ensemble, ajustada en una mitad y evaluada fuera de ella) se compara con
+      el exacto en una rejilla de al menos 20 estados por instante, en al menos 3 instantes.
+    error_absoluto_maximo: 0.02
+    alternativa: "o ≤ 3 errores típicos de Monte Carlo del estimador, si ese valor es mayor que 0.02"
+
+  teorema_2:
+    descripcion: "Presupuesto de contingencia: |M0 (1 − M0) − Σ_t ρ̂_t| con ρ̂_t = media de (ĥ_{t+1} − ĥ_t)² sobre trayectorias de prueba"
+    max_errores_tipicos: 3      # error típico por bootstrap sobre trayectorias
+
+  teorema_3:
+    descripcion: "Ruta más barata: |Σ_t κ̂_t + log P̂(B)| y perfil κ̂ frente al exacto"
+    max_errores_tipicos: 3
+    error_L1_relativo_perfil_max: 0.10
+    agregacion_perfil: "10 tramos de tiempo de igual longitud"
+
+  cota_informacion:
+    descripcion: >
+      Para cada POD evaluado (uno o más por juguete y todos los candidatos del mundo sintético), el rastro se
+      estima con la cota de Donsker-Varadhan con función ajustada en una mitad y evaluada en la otra, y Λ̂ = ê / c.
+    lambda_cota_inferior_menor_o_igual_1: 1.0   # Λ̂ − 2·error típico ≤ 1 en el 100 % de los PODs
+    fraccion_pods: 1.0
+    tolerancia_lambda_juguetes: "Λ̂ ≥ 0.8 · Λ_exacto y Λ̂ ≤ Λ_exacto + 3 errores típicos, en el POD designado de cada juguete"
+    urna_polya_lambda_min_relativo: 0.8
+
+  cobertura:
+    descripcion: >
+      Mundos sintéticos con parámetros y estado verdaderos sorteados del prior, historia degradada como las
+      fuentes reales (solo algunas variables, con ruido y huecos), asimilación (M6) y estimación del efecto del
+      POD en la consulta I, variante de hindcast (§4.4). Fracción de intervalos del 90 % que contienen el efecto
+      verdadero calculado en el modelo verdadero desde el estado verdadero.
+    replicas_min: 200
+    intervalo_nominal: 0.90
+    cobertura_min: 0.85
+    cobertura_max: 0.95
+
+  pod_plantado:
+    descripcion: >
+      Mundos sintéticos con un POD plantado de efecto grande, PODs de efecto pequeño y PODs de efecto nulo
+      por construcción. Se ordenan los candidatos por efecto estimado; se contrastan con Benjamini-Hochberg.
+    mundos_min: 50
+    posicion_max: 3
+    fraccion_recuperado_min: 0.80
+    fdr_max: 0.05              # fracción media de falsos descubrimientos entre los declarados (BH a q = 0.05)
+
+  computo:
+    horas_max_cpu_8_nucleos: 1.0
+
+ensayo:
+  semillas_puerta: [910001, 910002, 910003]   # reservadas: no se usan en desarrollo
+  regla_tamano_montecarlo: >
+    En los juguetes, los tamaños de Monte Carlo se eligen para que el error típico de cada estimador comparado con
+    un umbral absoluto sea como mucho 1/5 de ese umbral. Los tamaños concretos quedan en el informe.
+
+notas:
+  - "Λ ≤ 1 es la identidad contable de la información (Teorema 1, A7)."
+  - "La cobertura se evalúa en el caso bien especificado (el modelo verdadero pertenece a la clase). Los experimentos cruzados entre modelos rivales son puerta de F3."
