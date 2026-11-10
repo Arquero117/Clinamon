@@ -63,7 +63,7 @@ def teorema_2_por_lotes(c: CadenaFinita, lotes: int, n_lote: int, semilla: int, 
             "error_tipico": float(difs.std(ddof=1) / np.sqrt(lotes)), "lotes": lotes, "n_lote": n_lote}
 
 
-def evaluar_juguete(nombre: str, n_ajuste: int, n_prueba: int, n_pod: int, semilla: int, nodos: int = 12,
+def evaluar_juguete(nombre: str, n_ajuste: int, n_prueba: int, n_pod: int, semilla: int, nodos=(12, 32),
                     instantes=(0.5, 0.75, 0.9), lotes_t2: int = 16, n_lote_t2: int = 10000) -> dict:
     c = JUGUETES[nombre]()
     h = c.committor()

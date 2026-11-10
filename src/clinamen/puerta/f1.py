@@ -25,7 +25,7 @@ from ..motor.salida import commit_git
 from ..validacion.sintetico import ConfigExperimento, experimento, resumir
 
 RAIZ = Path(__file__).resolve().parents[3]
-TAMANOS_JUGUETES = {"n_ajuste": 60000, "n_prueba": 40000, "n_pod": 200000, "nodos": 12,
+TAMANOS_JUGUETES = {"n_ajuste": 60000, "n_prueba": 40000, "n_pod": 200000, "nodos": (12, 32),
                     "lotes_t2": 16, "n_lote_t2": 10000}
 
 

@@ -100,7 +100,7 @@ class Logistica:
     cov: np.ndarray
 
     @classmethod
-    def ajustar(cls, Phi, y, w=None, ridge=1e-4, iters=50):
+    def ajustar(cls, Phi, y, w=None, ridge=1e-4, iters=50, tol=1e-7):
         n, k = Phi.shape
         w = np.ones(n) if w is None else w
         beta = np.zeros(k)
@@ -114,7 +114,7 @@ class Logistica:
             H = Phi.T @ (Phi * W[:, None]) + R + 1e-10 * np.eye(k)
             paso = np.linalg.solve(H, g)
             beta = beta + paso
-            if np.max(np.abs(paso)) < 1e-9:
+            if np.max(np.abs(paso)) < tol:
                 break
         return cls(beta, np.linalg.inv(H))
 
@@ -140,8 +140,13 @@ class Committor:
     constantes: list   # instantes donde el rasgo no varía: ĥ = frecuencia (con su error típico)
 
     @classmethod
-    def ajustar(cls, rasgos: np.ndarray, desenlace: np.ndarray, nodos: int = 12):
-        """rasgos: (T+1, n, d); desenlace: (n,) booleano. El instante T se fija al indicador."""
+    def ajustar(cls, rasgos: np.ndarray, desenlace: np.ndarray, nodos=(12, 32)):
+        """rasgos: (T+1, n, d); desenlace: (n,) booleano. El instante T se fija al indicador.
+
+        ``nodos``: entero, o tupla de candidatos entre los que se elige en cada instante por log-score en un 20 %
+        reservado (una de cada cinco trayectorias); después se reajusta con todos los datos. Cerca del horizonte
+        h tiende a un escalón y hacen falta más nodos que lejos de él.
+        """
         T1, n, d = rasgos.shape
         y = desenlace.astype(np.float64)
         modelos, bases, ctes = [], [], []
@@ -151,7 +156,19 @@ class Committor:
                 f = (y.sum() + 0.5) / (n + 1.0)
                 modelos.append(None); bases.append(None); ctes.append((f, np.sqrt(f * (1 - f) / n)))
                 continue
-            base = Base.ajustar(X, nodos)
+            nd = nodos
+            if not isinstance(nodos, int):
+                val = np.arange(n) % 5 == 0
+                mejor = None
+                for cand in nodos:
+                    b = Base.ajustar(X[~val], cand)
+                    m = Logistica.ajustar(b(X[~val]), y[~val], ridge=1e-6)
+                    q = np.clip(m.prob(b(X[val])), 1e-12, 1 - 1e-12)
+                    ls = np.mean(y[val] * np.log(q) + (1 - y[val]) * np.log(1 - q))
+                    if mejor is None or ls > mejor[0]:
+                        mejor = (ls, cand)
+                nd = mejor[1]
+            base = Base.ajustar(X, nd)
             modelos.append(Logistica.ajustar(base(X), y, ridge=1e-6)); bases.append(base); ctes.append(None)
         return cls(modelos, bases, nodos, ctes)
 

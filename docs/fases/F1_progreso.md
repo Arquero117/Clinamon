@@ -91,15 +91,21 @@ gobernante 0; nulos = entidades 3–5. ~10 s por mundo en un núcleo.
 P-valores de nulos ~uniformes (KS p 0.28/0.53; sd z 1.06). H = 10 se descartó: el efecto del choque es
 transitorio y el plantado no destacaba (decisión tomada con semillas de desarrollo, antes de la puerta).
 
-## P9 en ejecución
+## P9 — Iteración 1 de la puerta: NO SUPERADA (documentada en informes/F1/puerta_F1_iteracion1.md)
 
-- Código de la puerta en el commit 982a6a7. Lanzada `python -m clinamen puerta-f1 --procesos 4`
-  (≈23 min). Es reanudable: las partes van a `informes/F1/partes/*.json`; si se interrumpe, relanzar la misma
-  orden y continúa. Al terminar escribe `informes/F1/puerta_F1.{json,md}`.
-- ADR-0006 escrita (`docs/decisiones/ADR-0006-banco-canonico-y-asimilacion.md`).
+Todo pasa (Teoremas 2 y 3, Λ, cobertura 0.925, plantado 0.94, FDR 0.023, cómputo 0.21 h/8 núcleos) salvo el
+committor de doble_pozo_estable en t = 54: error 0.041 en x = −0.07 (tolerancia max(0.02, 3·e.t.) = 0.04).
+Diagnóstico: cerca del horizonte h es casi un escalón junto a la silla y 12 nodos (espaciado ~0.33) no lo
+capta; el mismo defecto explica el sesgo leve de la urna en el Teorema 2 (2.9 e.t., al límite).
+Corrección (iteración 2): nodos elegidos por instante con log-score en un 20 % reservado entre (12, 32).
+La parte de mundos sintéticos no usa el committor: sus resultados (partes cobertura_*/plantado_*) siguen
+válidos con el código de la iteración 2 (deterministas, mismo código).
+Iteración 2: rehacer los cinco juguetes con la semilla de puerta 910001 y, más estricto que el prerregistro,
+exigir también que pasen con semillas nuevas 910011 y 910021 (contra el sobreajuste a la semilla de puerta).
+Si la iteración 2 falla: simplificar el modelo (§17.2), no la puerta.
 
 ## Siguiente paso concreto
 
-Leer `informes/F1/puerta_F1.md`. Si SUPERADA: escribir `docs/fases/F1.md` (resumen como F0.md), actualizar
+Tras la iteración 2: leer `informes/F1/puerta_F1.md`. Si SUPERADA: escribir `docs/fases/F1.md` (resumen como F0.md), actualizar
 README y CLAUDE.md (F1 completada; F2 siguiente, congelar su puerta antes de empezar), commit + push.
 Si NO SUPERADA: NO tocar umbrales; diagnosticar, documentar, simplificar el modelo (máx. 2 iteraciones, §17.2).
