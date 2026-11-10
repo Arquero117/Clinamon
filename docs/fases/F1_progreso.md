@@ -17,8 +17,8 @@
       paso con reindexado (filtro de partículas); parámetros por columna; modelo de observación en la ontología.
       F0 debe seguir pasando (tests y `clinamen puerta-f0`).
 - [x] P6. Mundo sintético `sintetico_f1` (ontología + mecanismos).
-- [ ] P7. M6 asimilación: filtro de partículas bootstrap + muestreo por importancia adaptativo pseudo-marginal.
-- [ ] P8. M10: degradación, efecto verdadero, intervalos, cobertura, ranking de candidatos, BH.
+- [x] P7. M6 asimilación: filtro de partículas bootstrap + muestreo por importancia adaptativo pseudo-marginal.
+- [x] P8. M10: degradación, efecto verdadero, intervalos, cobertura, ranking de candidatos, BH.
 - [ ] P9. `clinamen puerta-f1`: evaluación con semillas de puerta; informe; docs; commit; push.
 
 ## Decisiones tomadas (resumen; detalle en ADR-0006 cuando exista)
@@ -82,9 +82,17 @@ Lecciones (ya incorporadas al código):
   de sucesiones completa; la población no se observa. Con K = 256: sd log p̂ ≈ 2 (sin censo, sd 1.0, 70 %).
 - Pendiente de P7: test de la asimilación y medir ESS; elegir T_obs (30–40), M, K.
 
+## P8 hecho (experimento sintético) — resultados de DESARROLLO (semillas 1–80, no de puerta)
+
+`clinamen/validacion/sintetico.py`: ConfigExperimento(T_obs=30, H=5, M=256, K=256, etapas=3, S=200, R=50,
+R_verdad=4000), 12 candidatos (muerte y inclinación +1 por entidad en t0 = 30); plantado = muerte del
+gobernante 0; nulos = entidades 3–5. ~10 s por mundo en un núcleo.
+80 mundos: cobertura 0.9125, plantado en top-3 95 %, FDR 0.037, Λ ok 100 %, ESS(θ) mediana ~63.
+P-valores de nulos ~uniformes (KS p 0.28/0.53; sd z 1.06). H = 10 se descartó: el efecto del choque es
+transitorio y el plantado no destacaba (decisión tomada con semillas de desarrollo, antes de la puerta).
+
 ## Siguiente paso concreto
 
-Terminar P7 y pasar a P8: `clinamen/validacion/sintetico.py` con un experimento por mundo: verdad (θ del prior,
-historia 0..T_obs−1, observar), posterior, S muestras (θ, x_t0), gemelos con R réplicas por muestra desde
-paso0 = T_obs con ramas = candidatos, efecto verdadero con muchas réplicas desde el estado verdadero, intervalo
-90 % = cuantiles 5–95 % de los efectos por muestra; cobertura con muchos mundos (procesos en paralelo).
+P9: `src/clinamen/puerta/f1.py` + orden `clinamen puerta-f1 [--procesos n]`: juguetes con semilla 910001
+(evaluar_juguete con n_ajuste=100000, n_prueba=100000, n_pod=200000), cobertura con 200 mundos de semillas
+910002000+i, plantado con 50 mundos de semillas 910003000+i; informe JSON + MD en informes/F1; ejecutar una vez.
