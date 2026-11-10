@@ -7,10 +7,10 @@
 
 - [x] P0. Protocolo de continuidad (`CLAUDE.md`), hash del manual y test de integridad.
 - [x] P1. Puerta F1 congelada: `prerregistro/F1_puerta.yaml` + sha256.
-- [ ] P2. `clinamen/contingencia/cadena.py`: cadenas de Markov finitas con cálculo exacto de h, ρ_t (Teorema 2),
+- [x] P2. `clinamen/contingencia/cadena.py`: cadenas de Markov finitas con cálculo exacto de h, ρ_t (Teorema 2),
       κ_t (Teorema 3, transformada h de Doob), KL marginal de un POD (Λ exacto), espectro; simulación por Philox.
-- [ ] P3. `clinamen/contingencia/juguetes.py`: los cinco juguetes como cadenas finitas (discretización en rejilla).
-- [ ] P4. `clinamen/contingencia/estimadores.py` (M8 genérico, solo trayectorias): committor por regresión
+- [x] P3. `clinamen/contingencia/juguetes.py`: los cinco juguetes como cadenas finitas (discretización en rejilla).
+- [x] P4. `clinamen/contingencia/estimadores.py` (M8 genérico, solo trayectorias): committor por regresión
       logística con validación cruzada, disparos, presupuesto ρ̂, κ̂ sobre trayectorias condicionadas a B, rastro
       por Donsker-Varadhan, espectro de tiempos implícitos, dos regímenes por vector propio. Tests contra exactos.
 - [ ] P5. Motor: topología por lista de aristas; varios brazos (un POD por brazo); estado inicial dado; API paso a
@@ -34,6 +34,21 @@
   partículas (pseudo-marginal); estado en t0 tomado del filtro de cada θ. Consulta I, variante de hindcast.
 - Brazos múltiples: brazo j decoupled usa flujo 2j−1 y sus sorteos de intervención el 2j (j = 1 coincide con F0).
 
+## Resultados de desarrollo P2–P4 (semilla de desarrollo 11; NO son la puerta)
+
+`clinamen.contingencia.banco.evaluar_juguete(nombre, 40000, 40000, 100000, 11, nodos=12)`: los cinco juguetes
+superan committor, Teorema 2, Teorema 3 y Λ. Tiempos: 30–50 s por juguete (lento_rapido ~200 s).
+Lecciones (ya incorporadas al código):
+- Base polinómica insuficiente → B-splines cúbicos (12 nodos) + indicadores para rasgos con ≤ 5 valores.
+- Σ(Δĥ)² está sesgado por el ruido de ĥ → productos cruzados Δĥ¹·Δĥ² con ajustes independientes.
+- El bootstrap sobre trayectorias de prueba subestima el error típico (ignora el ruido del ajuste) → Teorema 2 con
+  16 lotes independientes; Teorema 3 suma el error relativo de ĥ_0.
+- PODs designados con rastro medible (no absorbidos); observable x_T en 8 tramos.
+
+## Uso de las semillas de puerta (fijado ANTES de usarlas)
+
+- 910001: juguetes (cada juguete con esa semilla). 910002: cobertura. 910003: POD plantado.
+
 ## Siguiente paso concreto
 
-P2.
+P5 (motor).
