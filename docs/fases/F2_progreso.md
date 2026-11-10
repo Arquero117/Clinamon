@@ -8,10 +8,10 @@
 - [x] P1. M2 ingesta: `src/clinamen/ingesta/seshat.py` → `datos/procesados/seshat_panel.parquet`
       (NGA, región mundial, siglo, PolID, SPC, Pop, Terr) + tests.
 - [x] P2. Puntuación (M10): CRPS por muestras, PIT aleatorizado, cobertura, bootstrap por bloques de región.
-- [ ] P3. Modelos (M3/M6): R1, R2, R3 con componente de continuidad de polity (q), jerarquía por región
+- [x] P3. Modelos (M3/M6): R1, R2, R3 con componente de continuidad de polity (q), jerarquía por región
       (MLE penalizado), incertidumbre paramétrica por Laplace; predictivas por simulación; apilamiento.
-- [ ] P4. Referencias nulas: persistencia, tendencia lineal 500 años, climatología.
-- [ ] P5. Hindcast por origen móvil y por región dejada fuera; Chapman-Kolmogorov; inevitabilidad.
+- [x] P4. Referencias nulas: persistencia, tendencia lineal 500 años, climatología.
+- [x] P5. Hindcast por origen móvil y por región dejada fuera; Chapman-Kolmogorov; inevitabilidad.
 - [ ] P6. `clinamen puerta-f2a` con la semilla 920001; informe; docs; commit; push.
 
 ## Regla anti-sobreajuste del constructor
@@ -27,6 +27,11 @@ se fijan antes.
   todos los rivales comparten el componente «la polity continúa con probabilidad q».
 - Cobertura y PIT con PIT aleatorizado (correcto con átomos); se informa también la cobertura de intervalo.
 
+- Bootstrap de la habilidad por bloques de GRAN REGIÓN (agrupación del prerregistro); inevitabilidad en
+  grandes regiones con ≥ 30 predicciones de SPC. Fijado antes de ejecutar la puerta.
+- Pruebas: sin fuga (alterar el futuro no cambia ajustes ni referencias) y Chapman-Kolmogorov con control
+  positivo (Markov) y negativo (memoria).
+
 ## Siguiente paso concreto
 
-P3 (modelos R1–R3, `src/clinamen/hindcast/modelos.py`).
+P6: ejecutar `python -m clinamen puerta-f2a` UNA vez (semilla 920001), escribir informe y docs.

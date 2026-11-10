@@ -65,6 +65,12 @@ def _puerta_f1(args):
     sys.exit(0 if res["supera_puerta"] else 1)
 
 
+def _puerta_f2a(args):
+    from .puerta.f2a import evaluar_puerta_f2a
+    res = evaluar_puerta_f2a(args.salida) if args.salida else evaluar_puerta_f2a()
+    sys.exit(0 if res["supera_puerta"] else 1)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="clinamen", description="Motor de historia contrafactual (fase F0)")
     sub = ap.add_subparsers(dest="orden", required=True)
@@ -99,6 +105,10 @@ def main(argv=None):
     p1.add_argument("--procesos", type=int, default=4)
     p1.add_argument("--max-horas", type=float, default=2.0)
     p1.set_defaults(f=_puerta_f1)
+
+    p2 = sub.add_parser("puerta-f2a", help="evalúa la puerta F2a: hindcast de escala social con Seshat")
+    p2.add_argument("--salida", default=None)
+    p2.set_defaults(f=_puerta_f2a)
 
     args = ap.parse_args(argv)
     args.f(args)
